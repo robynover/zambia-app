@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <title>Ethoinformatics</title>
+    </head>
+    <body>
+        <div class="app">
+            <div id="msg"></div>
+            <div id="timer_status"></div>
+            <h1>Sighting</h1>
+            <button id="sighting_time">Start Time</button>
+           
+            <label for="sighting_notes">Sighting Notes</label>
+            <textarea cols="40" rows="8" name="sighting_notes" id="sighting_notes"></textarea>
+            <!--<button id="save_sighting_notes">Save Notes</button>-->
+
+            <div id= "pheno_obs">
+                <h2>Phenotype observations</h2>
+                <!--<button id="new_pheno_obs">New</button>-->
+                <label for="phenotype_select">Phenotype</label>
+                <select id="phenotype_select"></select>
+                <input type="text" id="new_phenotype" />
+                <input id="frequency_slider" type="range" min="0" max="100" value="50" />
+                <input id="frequency_input" type="number" maxlength="3" size="3" value="50"/>
+                <br/>
+                <label for="pheno_notes">Phenotype Notes</label>
+                <textarea cols="40" rows="8" name="pheno_notes" id="pheno_notes"></textarea>
+                <button id="save_pheno_obs">Done</button>
+
+            </div>
+            <h4>Records</h4>
+            <div id="pheno_obs_records"><ul></ul></div>
+            <button id="sync_remote">Save to Remote</button>
+        </div>
+       <!-- <script type="text/javascript" src="cordova.js"></script>-->
+        <script type="text/javascript" src="js/lib/jquery-1.8.2.min.js"></script>
+        <script type="text/javascript" src="js/lib/pouchdb-nightly.min.js"></script>
+        <script type="text/javascript" src="js/lib/moment.min.js"> </script>
+        <script type="text/javascript" src="js/db.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript">
+            app.initialize();
+        </script>
+    </body>
+</html>
