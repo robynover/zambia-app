@@ -3,6 +3,8 @@ var app = {
     initialize: function() {
         this.bindEvents();
         //this.onDeviceReady(); //for browser debugging
+        //app.debug('init');
+
     },
     // Bind Event Listeners
     bindEvents: function() {
@@ -13,18 +15,18 @@ var app = {
         $('#frequency_slider').bind('change',this.frequencySync);
         $('#phenotype_select').bind('change',this.phenoSelectListener);
         $('#sync_remote').bind('click',this.couchSync);
+        //$('#reset').bind('click',this.resetDB);
     },
     // deviceready Event Handler
     onDeviceReady: function() {
-        //$('#msg').html('ready');
-        app.makePhenotypeSelect();
+        app.debug('device ready');
     },
     clock_running: false,
     current_sighting: {phenotype_sightings:[]},
     sighting_notes: '',
     time_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
 
-    // listen for GPS
+    // (placeholder) listen for GPS
     gpsListener: function(){
         // get coords
         coords = {gps: true, lat: 40.730473, long: -73.994844, timestamp: Date.now() };
@@ -33,9 +35,9 @@ var app = {
     },
     trackTime: function(){
         if (app.clock_running){ //stop time
-            app.current_sighting.time_end = moment().format(app.time_format);
+            app.current_sighting.end_time = moment().format(app.time_format);
             app.clock_running = false;
-            this.innerHTML = 'Start Time';
+            this.innerHTML = 'Start Sighting';
             $('#timer_status').addClass('off');
             $('#timer_status').html('Timer stopped');
 
@@ -43,18 +45,32 @@ var app = {
             //console.log(app.current_sighting);
             // show sync button
             $('#sync_remote').show();
+
+            // save to local db
+            app.saveSighting();
+            /*dBase.all(function(results){
+                //console.log(results);
+                for (r in results){
+                    app.debug(results[r].doc.sighting_notes);
+                }
+            });*/
             
         } else { //start time
-            app.current_sighting.time_start = moment().format(app.time_format);//Date.now();
-            //$('#msg').append(app.current_sighting.time_start);
+            app.current_sighting.start_time = moment().format(app.time_format);//Date.now();
+            //$('#msg').append(app.current_sighting.start_time);
             app.clock_running = true;
-            this.innerHTML = 'End Time';
+            this.innerHTML = 'End Sighting';
             $('#timer_status').addClass('on');
             $('#timer_status').html('Timer running');
+            // set up phenotype selection menu
+             app.makePhenotypeSelect();
+
             // open up phenotype entry when timer has started
             $('#pheno_obs').show();
             // hide sync button -- can't sync while timer is running
             $('#sync_remote').hide();
+            // hide records div -- no records yet
+            $('#pheno_obs_records').hide();
         } 
     },
     saveSighting: function(){
@@ -62,8 +78,8 @@ var app = {
         /*
         // structure of sighting object
         obj = {
-            time_start: app.time_start,
-            time_end: app.time_end,
+            start_time: app.start_time,
+            end_time: app.end_time,
             sighting_notes: '',
             phenotype_sightings: [],
             census_animals: []
@@ -77,6 +93,7 @@ var app = {
     },
     makePhenotypeSelect: function(){
         phenos = app.getPhenotypes();
+        $('#phenotype_select').html('');
         for (p in phenos){
             $('#phenotype_select').append('<option value="'+ p +'">'+ phenos[p] + '</option>');
         }
@@ -112,6 +129,7 @@ var app = {
         app.current_sighting.phenotype_sightings.push(ps);
         
         // add to display list of stored records
+        $('#pheno_obs_records').show();
         $('#pheno_obs_records ul').append('<li>' + ps.phenotype_name + ' ' + ps.frequency+'</li>');
 
         // clear/reset all the values
@@ -144,17 +162,26 @@ var app = {
     }
 
     /*
-    set-up procedure: 
-        get list of activities from central database - before 1st use and periodically, 
-            depending on whether others are using app
-        one-time step: get agesex options from db -- specific to a particular study
-        get list of phenotypes (periodic update?)
-
-        should there be a special couchDB db for set-up parameters to run on start-up?
-
-    notes:
-    pg time format is: 2014-03-24 15:57:25.377317+00
-    */
+    resetDB: function(){
+        alert('db reset');
+        dBase.reset();
+    }*/
 
 };
+ /*
+set-up procedure: 
+    get list of activities from central database - before 1st use and periodically, 
+        depending on whether others are using app
+    one-time step: get agesex options from db -- specific to a particular study
+    get list of phenotypes (periodic update?)
+
+    should there be a special couchDB db for set-up parameters to run on start-up?
+
+notes:
+pg time format is: 2014-03-24 15:57:25.377317+00
+
+TODO:
+once stored in pg, update couch to hold the sighting_id (so it doesn't get added again), 
+    then update device records from couch 
+*/
 

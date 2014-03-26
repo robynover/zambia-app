@@ -37,3 +37,13 @@ select{
 #sync_remote{
     display: none;
 }
+#pheno_obs_records{
+    display:none;
+}
+#msg{
+    border: 1px dotted #999;
+    background-color: #eee;
+}
+textarea{
+    width:100%;
+}

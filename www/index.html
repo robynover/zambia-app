@@ -16,7 +16,7 @@
             <button id="sighting_time">Start Time</button>
            
             <label for="sighting_notes">Sighting Notes</label>
-            <textarea cols="40" rows="8" name="sighting_notes" id="sighting_notes"></textarea>
+            <textarea cols="40" rows="6" name="sighting_notes" id="sighting_notes"></textarea>
             <!--<button id="save_sighting_notes">Save Notes</button>-->
 
             <div id= "pheno_obs">
@@ -29,15 +29,19 @@
                 <input id="frequency_input" type="number" maxlength="3" size="3" value="50"/>
                 <br/>
                 <label for="pheno_notes">Phenotype Notes</label>
-                <textarea cols="40" rows="8" name="pheno_notes" id="pheno_notes"></textarea>
-                <button id="save_pheno_obs">Done</button>
+                <textarea cols="40" rows="6" name="pheno_notes" id="pheno_notes"></textarea>
+                <button id="save_pheno_obs">Add to Sighting</button>
 
             </div>
-            <h4>Records</h4>
-            <div id="pheno_obs_records"><ul></ul></div>
+            
+            <div id="pheno_obs_records">
+                <h4>Records</h4>
+                <ul></ul>
+            </div>
             <button id="sync_remote">Save to Remote</button>
+           <!-- <p>For debugging: <button id="reset">Reset</button></p> -->
         </div>
-       <!-- <script type="text/javascript" src="cordova.js"></script>-->
+        <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/lib/jquery-1.8.2.min.js"></script>
         <script type="text/javascript" src="js/lib/pouchdb-nightly.min.js"></script>
         <script type="text/javascript" src="js/lib/moment.min.js"> </script>

@@ -20,9 +20,15 @@ var dBase = {
 	},
 	sync: function(){ 
 		//console.log('sync clicked');
-		app.debug('sync clicked');
+		//app.debug('sync clicked');
 		var opts = {continuous: false,complete:function(){alert('Synced to Couch');}};
 		this.db.replicate.to(this.remoteServer, opts);	
 	}
+
+	/*
+	reset: function(){
+		this.db.destroy();
+		this.db = PouchDB('sightings'),
+	}*/
 
 };
