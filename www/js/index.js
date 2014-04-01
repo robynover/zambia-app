@@ -2,18 +2,24 @@ var app = {
     // Application Constructor
     initialize: function() {
         this.bindEvents();
-        //this.onDeviceReady(); //for browser debugging
-        //app.debug('init');
+        this.onDeviceReady(); //for browser debugging
+        app.debug('init');
+        //console.log('MOBILE ________________' + $.mobile.allowCrossDomainPages);
 
     },
     // Bind Event Listeners
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
-        $('#sighting_time').bind('click',this.trackTime);
+        $('#sighting_time').bind('click',this.trackSightingTime);
         $('#save_pheno_obs').bind('click',this.savePhenotypeSighting);
-        $('#frequency_input').bind('change',this.frequencySync);
-        $('#frequency_slider').bind('change',this.frequencySync);
+        //$('#frequency_input').bind('change',this.frequencySync);
+        //$('#frequency_slider').bind('change',this.frequencySync);
         $('#phenotype_select').bind('change',this.phenoSelectListener);
+        $('#obs_activity_list > li').bind('click',this.obsActivitySelectListener);
+        /*$('#sighting_notepad_icon').bind('click',function(){
+            $('#sighting_notes_wrap').toggle();
+        });*/
+        //
         $('#sync_remote').bind('click',this.couchSync);
         //$('#reset').bind('click',this.resetDB);
     },
@@ -21,9 +27,12 @@ var app = {
     onDeviceReady: function() {
         app.debug('device ready');
     },
-    clock_running: false,
+    sighting_clock_running: false,
+    obs_activity_clock_running: false,
     current_sighting: {phenotype_sightings:[]},
     sighting_notes: '',
+    current_obs_activity: {},
+
     time_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
 
     // (placeholder) listen for GPS
@@ -33,13 +42,14 @@ var app = {
         // store to DB
         dBase.add(coords);
     },
-    trackTime: function(){
-        if (app.clock_running){ //stop time
+    trackSightingTime: function(){
+        if (app.sighting_clock_running){ //stop time
             app.current_sighting.end_time = moment().format(app.time_format);
-            app.clock_running = false;
+            app.sighting_clock_running = false;
             this.innerHTML = 'Start Sighting';
-            $('#timer_status').addClass('off');
-            $('#timer_status').html('Timer stopped');
+            //timer status
+            //$('#timer_status').addClass('off');
+            //$('#timer_status').html('Timer stopped');
 
             app.current_sighting.sighting_notes = $('#sighting_notes').val();
             //console.log(app.current_sighting);
@@ -58,10 +68,15 @@ var app = {
         } else { //start time
             app.current_sighting.start_time = moment().format(app.time_format);//Date.now();
             //$('#msg').append(app.current_sighting.start_time);
-            app.clock_running = true;
+            app.sighting_clock_running = true;
             this.innerHTML = 'End Sighting';
-            $('#timer_status').addClass('on');
-            $('#timer_status').html('Timer running');
+            //timer status
+            //$('#timer_status').addClass('on');
+            //$('#timer_status').html('Timer running');
+
+            //show sighting notes button
+            $('#sighting_notes_button').show();
+
             // set up phenotype selection menu
              app.makePhenotypeSelect();
 
@@ -72,6 +87,15 @@ var app = {
             // hide records div -- no records yet
             $('#pheno_obs_records').hide();
         } 
+    },
+    trackObserverActivityTime: function(){
+        if (app.obs_activity_clock_running){ // stop  timer
+            app.obs_activity_clock_running = false;
+            app.current_obs_activity.end_time = moment().format(app.time_format); 
+        } else { // start timer
+            app.obs_activity_clock_running = true;
+            app.current_obs_activity.start_time = moment().format(app.time_format); 
+        }
     },
     saveSighting: function(){
         // store to local db
@@ -91,6 +115,10 @@ var app = {
         return {1:'light muzzle',2:'mohawk',3:'small pink swelling'};
         //return ['light muzzle','mohawk','small pink swelling'];
     },
+    getObserverActivities: function(){
+        //mocked up for now
+        return {1:'driving',2:'walking',3:'sleeping'};
+    },
     makePhenotypeSelect: function(){
         phenos = app.getPhenotypes();
         $('#phenotype_select').html('');
@@ -105,6 +133,27 @@ var app = {
             $('#new_phenotype').show();
         } else {
             $('#new_phenotype').hide();
+        }
+    },
+    obsActivitySelectListener: function(){
+        // get value of li
+        activity = $(this).text();
+        activity_id = $(this).attr('data-actid');
+        is_ready = app.showConfirm('Start '+ activity + '?');
+        if (is_ready){
+            console.log('ready to start');
+            app.trackObserverActivityTime();
+            app.current_obs_activity.activity_id = activity_id;
+            app.current_obs_activity.activity_name = activity;
+            //app.debug('activity: '+ activity + ' id: '+ activity_id);
+            // show only the activity that's been chosen
+            $(this).addClass('activity_selected');
+            $('#obs_activity_list > li').not('.activity_selected').hide();
+            $('#activity_info').hide();
+            // show sighting section
+            $('#sighting').show();
+        } else {
+            console.log('NOT ready to start');
         }
     },
     savePhenotypeSighting: function(){
@@ -159,6 +208,22 @@ var app = {
     },
     debug: function(log){
         $('#msg').append(log + "<br/>");
+    },
+    // use native alert when available
+    showAlert: function (message, title) {
+        if (navigator.notification) {
+            navigator.notification.alert(message, null, title, 'OK');
+        } else {
+            alert(title ? (title + ": " + message) : message);
+        }
+    },
+    // use native confirm when available
+    showConfirm: function (message) {
+        if (navigator.notification) {
+            return navigator.notification.confirm(message);
+        } else {
+            return confirm(message);
+        }
     }
 
     /*

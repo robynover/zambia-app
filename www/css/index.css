@@ -21,13 +21,14 @@ button{
 select{
     display:block;
 }
+/*
 #frequency_input{
     width:3em;
 }
 #frequency_slider{
     width: 75%;
     display:block;
-}
+}*/
 #new_phenotype{
     display:none;
 }
@@ -39,6 +40,12 @@ select{
 }
 #pheno_obs_records{
     display:none;
+}
+section#sighting{
+    display:none;
+}
+#sighting_notes_button{
+    display: none;
 }
 #msg{
     border: 1px dotted #999;
