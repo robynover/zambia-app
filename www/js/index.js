@@ -1,160 +1,130 @@
 var app = {
+    // properties
+    sighting_clock_running: false,
+    obs_activity_clock_running: false,
+    current_sighting: {phenotype_sightings:[]},
+    sighting_notes: '',
+    current_obs_activities: [],
+    timestamp_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
+    time_only_format: "HH:mm:ss",
+    activity_listening: false,
     // Application Constructor
     initialize: function() {
         this.bindEvents();
         this.onDeviceReady(); //for browser debugging
         app.debug('init');
-        //console.log('MOBILE ________________' + $.mobile.allowCrossDomainPages);
-
+        //console.log('init');
     },
     // Bind Event Listeners
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
-        $('#sighting_time').bind('click',this.trackSightingTime);
-        $('#save_pheno_obs').bind('click',this.savePhenotypeSighting);
-        //$('#frequency_input').bind('change',this.frequencySync);
-        //$('#frequency_slider').bind('change',this.frequencySync);
-        $('#phenotype_select').bind('change',this.phenoSelectListener);
         $('#obs_activity_list > li').bind('click',this.obsActivitySelectListener);
-        /*$('#sighting_notepad_icon').bind('click',function(){
-            $('#sighting_notes_wrap').toggle();
-        });*/
-        //
-        $('#sync_remote').bind('click',this.couchSync);
-        //$('#reset').bind('click',this.resetDB);
+        $('#sighting_time').bind('click',this.trackSightingTime);
+        $('#new_act_btn').bind('click',this.newObsActivityListener); 
+        $('#add_pheno_btn').bind('click',this.makePhenotypeSelect);
+        $( window ).on( "pagechange",this.pageChangeListener);
+        //$('#activity_notes_done_btn').bind('click', this.addActivityNotes);
+        $('#save_pheno_obs').bind('click',this.savePhenotypeSighting);
+        $('#phenotype_select').bind('change',this.phenoSelectListener);
     },
     // deviceready Event Handler
     onDeviceReady: function() {
         app.debug('device ready');
     },
-    sighting_clock_running: false,
-    obs_activity_clock_running: false,
-    current_sighting: {phenotype_sightings:[]},
-    sighting_notes: '',
-    current_obs_activity: {},
-
-    time_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
-
-    // (placeholder) listen for GPS
-    gpsListener: function(){
-        // get coords
-        coords = {gps: true, lat: 40.730473, long: -73.994844, timestamp: Date.now() };
-        // store to DB
-        dBase.add(coords);
-    },
-    trackSightingTime: function(){
-        if (app.sighting_clock_running){ //stop time
-            app.current_sighting.end_time = moment().format(app.time_format);
-            app.sighting_clock_running = false;
-            this.innerHTML = 'Start Sighting';
-            //timer status
-            //$('#timer_status').addClass('off');
-            //$('#timer_status').html('Timer stopped');
-
-            app.current_sighting.sighting_notes = $('#sighting_notes').val();
-            //console.log(app.current_sighting);
-            // show sync button
-            $('#sync_remote').show();
-
-            // save to local db
-            app.saveSighting();
-            /*dBase.all(function(results){
-                //console.log(results);
-                for (r in results){
-                    app.debug(results[r].doc.sighting_notes);
-                }
-            });*/
-            
-        } else { //start time
-            app.current_sighting.start_time = moment().format(app.time_format);//Date.now();
-            //$('#msg').append(app.current_sighting.start_time);
-            app.sighting_clock_running = true;
-            this.innerHTML = 'End Sighting';
-            //timer status
-            //$('#timer_status').addClass('on');
-            //$('#timer_status').html('Timer running');
-
-            //show sighting notes button
-            $('#sighting_notes_button').show();
-
-            // set up phenotype selection menu
-             app.makePhenotypeSelect();
-
-            // open up phenotype entry when timer has started
-            $('#pheno_obs').show();
-            // hide sync button -- can't sync while timer is running
-            $('#sync_remote').hide();
-            // hide records div -- no records yet
-            $('#pheno_obs_records').hide();
-        } 
-    },
-    trackObserverActivityTime: function(){
-        if (app.obs_activity_clock_running){ // stop  timer
-            app.obs_activity_clock_running = false;
-            app.current_obs_activity.end_time = moment().format(app.time_format); 
-        } else { // start timer
-            app.obs_activity_clock_running = true;
-            app.current_obs_activity.start_time = moment().format(app.time_format); 
-        }
-    },
-    saveSighting: function(){
-        // store to local db
-        /*
-        // structure of sighting object
-        obj = {
-            start_time: app.start_time,
-            end_time: app.end_time,
-            sighting_notes: '',
-            phenotype_sightings: [],
-            census_animals: []
-        };*/
-        dBase.add(app.current_sighting);
-    },
-    getPhenotypes: function(){
-        //mocked up for now
-        return {1:'light muzzle',2:'mohawk',3:'small pink swelling'};
-        //return ['light muzzle','mohawk','small pink swelling'];
-    },
-    getObserverActivities: function(){
-        //mocked up for now
-        return {1:'driving',2:'walking',3:'sleeping'};
-    },
-    makePhenotypeSelect: function(){
-        phenos = app.getPhenotypes();
-        $('#phenotype_select').html('');
-        for (p in phenos){
-            $('#phenotype_select').append('<option value="'+ p +'">'+ phenos[p] + '</option>');
-        }
-        $('#phenotype_select').append('<option value="new">New Phenotype</option>'); 
-        // to do: add listener to show an input box when "New" is chosen
-    },
-    phenoSelectListener: function(){
-        if ($(this).val() == 'new'){
-            $('#new_phenotype').show();
-        } else {
-            $('#new_phenotype').hide();
-        }
-    },
+    // Listeners
     obsActivitySelectListener: function(){
-        // get value of li
-        activity = $(this).text();
+        activity_name = $(this).text();
         activity_id = $(this).attr('data-actid');
-        is_ready = app.showConfirm('Start '+ activity + '?');
+        is_ready = app.showConfirm('Start '+ activity_name + '?');
         if (is_ready){
-            console.log('ready to start');
-            app.trackObserverActivityTime();
-            app.current_obs_activity.activity_id = activity_id;
-            app.current_obs_activity.activity_name = activity;
-            //app.debug('activity: '+ activity + ' id: '+ activity_id);
-            // show only the activity that's been chosen
-            $(this).addClass('activity_selected');
-            $('#obs_activity_list > li').not('.activity_selected').hide();
-            $('#activity_info').hide();
-            // show sighting section
-            $('#sighting').show();
+            start_activity = true;
+            // add to array
+            activity_id = $(this).attr('data-actid');
+            activity_name = $(this).text();
+            actObj = {};
+            actObj.activity_id = activity_id;
+            actObj.activity_name = activity_name;
+            app.current_obs_activities.push(actObj);
+            index = app.current_obs_activities.length - 1;
+
+            // start activity timer
+            trackedObj = app.trackObserverActivityTime(index);
+
+            // UI
+            //$('#obs_activity_list, #activity_title').fadeOut();
+            //$('#status_bar').text('Activity: '+ activity_name);
+            $('#activity_records').show();
+            //$('#activity_records ul').append('<li>' + activity_name + '</li>');
+            //li_text = activity_name + ', started at <strong>' + moment().format(app.time_only_format) + '</strong>';
+            //$('#activity_records ul').append('<li>' + li_text + '</li>');
+            app.addActivityRecordLi(activity_name,index,trackedObj.start_time);
+
+            //$('#obs_activity_list').fadeOut();
         } else {
             console.log('NOT ready to start');
         }
+        
+    },
+    newObsActivityListener: function(){
+        activity_name = $('#new_activity_field').val();
+        // need to make a temporary id # -- using text instead of number
+        activity_id = 'temp_id_' + activity_name;
+        actObj = {};
+        actObj.activity_id = activity_id;
+        actObj.activity_name = activity_name;
+        //app.current_obs_activities[activity_id] = actObj;
+        app.current_obs_activities.push(actObj);
+        index = app.current_obs_activities.length - 1;
+        // start activity timer
+        trackedObj = app.trackObserverActivityTime(index);
+        $('#activity_records').show();
+        //app.addActivityRecordLi(activity_name,activity_id,trackedObj.start_time);
+        app.addActivityRecordLi(activity_name,index,trackedObj.start_time);
+
+        //add new activity to selection list
+        // remove last child class and add new last child
+        $('#obs_activity_list li:last-child').removeClass('ui-last-child');
+        $('#obs_activity_list').append('<li class="ui-last-child" data-actid="'+activity_id+'"><a class="ui-btn" href="#">'+activity_name+'</a></li>');
+
+        //add to master list of activities
+        studyData.all_activities[activity_id] = activity_name;
+    },
+    stopActivityBtnListener:function(){
+        //console.log('stop activity click');
+        record_id = $(this).attr('data-recordid');
+        confirmed = app.showConfirm('Stop '+ app.current_obs_activities[record_id].activity_name + '?');
+        if (confirmed){
+            trackedObj = app.trackObserverActivityTime(record_id);
+            //app.showAlert('activity stopped: ' + trackedObj.activity_name);
+
+            //store to local DB
+            app.saveActivity(trackedObj);
+
+            //console.log(trackedObj);
+            //changed to show stopped 
+            //console.log($(this).parent());
+            el = $(this).parent();
+            $(this).remove();
+            el.append(' Stopped at <b>'+ moment(trackedObj.end_time).format(app.time_only_format) + '</b>');
+            el.addClass('stopped');
+            el.fadeOut(3000);
+        }
+        
+    },
+    pageChangeListener: function(){
+        if (location.hash == '#activities_log'){
+            app.buildCompletedActivitiesList();
+        }
+    },
+    showActivityNotes: function(){
+        record_id = $(this).attr('data-recordid');
+        $('#activity_notes').attr('data-recordid',record_id);
+        $('#activity_notes').show();
+    },
+    addActivityNotes: function(){
+        id = $('#activity_notes').attr('data-recordid');
+        app.current_obs_activities[id].activity_notes = $('#activity_notes_field').val();
+
     },
     savePhenotypeSighting: function(){
         // object structure
@@ -173,7 +143,7 @@ var app = {
             ps.phenotype_id = $('#phenotype_select').val();
             ps.phenotype_name = $('#phenotype_select option:selected').text();
         }
-        ps.frequency = $('#frequency_input').val()/100;
+        ps.frequency = $('#frequency_slider').val()/100;
         ps.phenotype_notes = $('#pheno_notes').val();
         app.current_sighting.phenotype_sightings.push(ps);
         
@@ -182,7 +152,6 @@ var app = {
         $('#pheno_obs_records ul').append('<li>' + ps.phenotype_name + ' ' + ps.frequency+'</li>');
 
         // clear/reset all the values
-        $('#frequency_input').val(50);
         $('#frequency_slider').val(50);
         $('#pheno_notes').val('');
         $('#new_phenotype').val('');
@@ -193,19 +162,122 @@ var app = {
         console.log(app.current_sighting);
 
     },
-    // sync the frequency slider value with the frequency input box value when either changes
-    frequencySync: function(){
-        if ($(this).attr('id') == 'frequency_input'){ 
-            $('#frequency_slider').val($(this).val());
-        } else if ($(this).attr('id') == 'frequency_slider'){
-            $('#frequency_input').val($(this).val());
+    phenoSelectListener: function(){
+        if ($(this).val() == 'new'){
+            $('#new_phenotype').show();
+        } else {
+            $('#new_phenotype').hide();
         }
-        //console.log ("INPUT: "+ $('#frequency_input').val());
-        //console.log ("SLIDER: "+ $('#frequency_slider').val());
+    },
+    // Controllers 
+    trackObserverActivityTime: function(id){
+        actObj = app.current_obs_activities[id];
+        if (actObj){
+            if (actObj.clock_running){ 
+                actObj.clock_running = false; // stop timer
+                actObj.end_time = moment().format(app.timestamp_format); 
+            } else { 
+                actObj.clock_running = true; // start timer
+                actObj.start_time = moment().format(app.timestamp_format); 
+            }
+            return actObj;
+        } else {
+            return false;
+        }    
+    },
+    
+    trackSightingTime: function(){
+        if (app.sighting_clock_running){ //stop time
+            app.current_sighting.end_time = moment().format(app.timestamp_format);
+            app.sighting_clock_running = false;
+            this.innerHTML = 'Start Sighting';
+            $('#add_pheno_btn').hide();
+            $('#pheno_obs_records').hide();
+            $('#sighting_notes_wrap').hide();
+            $('#sightings_status_bar').html('Sighting saved.');
+            
+        } else { //start time
+            app.current_sighting.start_time = moment().format(app.timestamp_format);//Date.now();
+            app.sighting_clock_running = true;
+            this.innerHTML = 'End Sighting';
+            
+            // UI
+            // show sighting started
+            //$('#sighting_status').html('Sighting started at <strong>' + moment().format(app.time_only_format) + '</strong>');
+            //show sighting notes button
+            $('#sighting_notes_wrap').show();
+            // show add phenotypes button
+            $('#add_pheno_btn').show();
+            $('#pheno_obs_records').show();
+
+            // set up phenotype selection menu
+            // app.makePhenotypeSelect();
+
+            // open up phenotype entry when timer has started
+            //$('#pheno_obs').show();
+            $('.sighting_title').hide();
+            // hide sync button -- can't sync while timer is running
+            //$('#sync_remote').hide();
+            // hide records div -- no records yet
+            //$('#pheno_obs_records').hide();
+        } 
+    },
+    getCompletedActivities: function(){
+        acts = [];
+        for (i in app.current_obs_activities){
+            if (app.current_obs_activities[i].end_time){
+                acts.push(app.current_obs_activities[i]);
+            }
+        }
+        return acts;
+    },
+
+    // UI
+    makePhenotypeSelect: function(){
+        phenos = studyData.all_phenotypes;
+        $('#phenotype_select').html('');
+        for (p in phenos){
+            $('#phenotype_select').append('<option value="'+ p +'">'+ phenos[p] + '</option>');
+        }
+        $('#phenotype_select').append('<option value="new">New Phenotype</option>'); 
+        // to do: add listener to show an input box when "New" is chosen
+    },
+    addActivityRecordLi: function(activity_name,id,start_time){
+        li_text = activity_name + ', started at <strong>' + moment(start_time).format(app.time_only_format) + '</strong>';
+        edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext edit_activity_btn" data-recordid="'+id+'">Edit</a>';
+        stop_btn = '<a href="#" class="ui-btn ui-btn-inline ui-mini activity_stop_btn" data-recordid="'+id+'">Stop</a>';
+        $('#activity_records ul').append('<li>' + edit_btn + li_text + stop_btn + '</li>');
+        // add listener now that the button/s exist/s, if it hasn't been added already
+        //if (!app.activity_listening){
+            //app.activity_listening = true;
+            $('.activity_stop_btn').bind('click',this.stopActivityBtnListener);
+            //$('.edit_activity_btn').bind('click',this.showActivityNotes);
+        //}
+    },
+    buildCompletedActivitiesList: function(){
+        acts = app.getCompletedActivities();
+        //console.log(acts);
+        $('#activities_log ul').html('');
+        edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext edit_activity_btn">Edit</a>';
+        for (id in acts){
+            li = '<li>' + edit_btn + acts[id].activity_name ;
+            li += '<b> start:</b> ' + acts[id].start_time +  ' <b>end:</b> ' + acts[id].end_time;
+            li += ' [notes] ';
+            li += '</li>';
+            $('#activities_log ul').append(li);
+        }
+        //$('.edit_activity_btn').bind('click',this.showActivityNotes);
+    },
+    // Database
+    saveActivity: function(activityObj){
+        activityObj.objtype = 'activity';
+        /*TODO!! Need to be able to update, not just add*/
+        dBase.add(activityObj);
     },
     couchSync: function(){
         dBase.sync();
     },
+    // Helpers
     debug: function(log){
         $('#msg').append(log + "<br/>");
     },
@@ -224,29 +296,18 @@ var app = {
         } else {
             return confirm(message);
         }
+    },
+    debugLocalDb: function(){
+        dBase.all(function(results){
+            for (r in results){
+                console.log(results[r]);
+            }
+         });
     }
-
-    /*
-    resetDB: function(){
-        alert('db reset');
-        dBase.reset();
-    }*/
-
 };
- /*
-set-up procedure: 
-    get list of activities from central database - before 1st use and periodically, 
-        depending on whether others are using app
-    one-time step: get agesex options from db -- specific to a particular study
-    get list of phenotypes (periodic update?)
 
-    should there be a special couchDB db for set-up parameters to run on start-up?
-
-notes:
-pg time format is: 2014-03-24 15:57:25.377317+00
-
-TODO:
-once stored in pg, update couch to hold the sighting_id (so it doesn't get added again), 
-    then update device records from couch 
+/*
+TODO: 
+list of activities should be clickable, so you can stop activity
+activity record detail modal or page
 */
-

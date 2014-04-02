@@ -7,6 +7,9 @@
 #timer_status.off{
     background-color: #EDBBC7;
 }
+.stopped{
+    background-color: #EDBBC7;
+}
 label{
     display:block;
     font-weight: bold;
@@ -21,6 +24,9 @@ button{
 select{
     display:block;
 }
+#activity_notes{
+    display: none;
+}
 /*
 #frequency_input{
     width:3em;
@@ -32,19 +38,19 @@ select{
 #new_phenotype{
     display:none;
 }
-#pheno_obs{
-    display: none;
-}
 #sync_remote{
     display: none;
 }
 #pheno_obs_records{
-    display:none;
+    display: none;
 }
-section#sighting{
-    display:none;
+#sighting_notes_wrap{
+    display: none;
 }
-#sighting_notes_button{
+#add_pheno_btn{
+    display: none;
+}
+#activity_records{
     display: none;
 }
 #msg{
@@ -54,3 +60,4 @@ section#sighting{
 textarea{
     width:100%;
 }
+

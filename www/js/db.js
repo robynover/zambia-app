@@ -1,6 +1,7 @@
 var dBase = {
-	db: PouchDB('sightings'), 
-	remoteServer: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/sightings',
+	//dbname: 'sightings',
+	db: PouchDB('zambia'), 
+	remoteServer: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia',
 
 	all: function(callback){ //takes a callback function in order to return records
 		this.db.allDocs({include_docs: true},  
