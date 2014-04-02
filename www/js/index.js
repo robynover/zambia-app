@@ -11,25 +11,42 @@ var app = {
     // Application Constructor
     initialize: function() {
         this.bindEvents();
-        this.onDeviceReady(); //for browser debugging
-        app.debug('init');
+        //this.onDeviceReady(); //for browser debugging
+        //app.debug('init');
         //console.log('init');
     },
     // Bind Event Listeners
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
-        $('#obs_activity_list > li').bind('click',this.obsActivitySelectListener);
+        /*$('#obs_activity_list > li').bind('click',this.obsActivitySelectListener);*/
+        $('#obs_activity_list > li').bind('click',this.startObsActivityRecord);
         $('#sighting_time').bind('click',this.trackSightingTime);
         $('#new_act_btn').bind('click',this.newObsActivityListener); 
         $('#add_pheno_btn').bind('click',this.makePhenotypeSelect);
         $( window ).on( "pagechange",this.pageChangeListener);
-        //$('#activity_notes_done_btn').bind('click', this.addActivityNotes);
+        $('#activity_notes_done_btn').bind('click', this.addActivityNotes);
         $('#save_pheno_obs').bind('click',this.savePhenotypeSighting);
         $('#phenotype_select').bind('change',this.phenoSelectListener);
+
+        // use .on() instead of .bind() to apply to elements added dynamically later
+        $('#activity_records').on('click','.activity_edit_btn',function(){
+            console.log('act edit btn listener called');
+            //attach record id to activity notes form
+            rid = $(this).attr('data-recordid');
+            $('#activity_notes').attr('data-recordid',rid);
+            dBase.find(rid,function(doc){
+                $('#activity_notes_field').val(doc.activity_notes);
+            });
+        });
+        $('#activity_records').on('click','.activity_stop_btn',this.stopActivityBtnListener);
+        
     },
     // deviceready Event Handler
     onDeviceReady: function() {
-        app.debug('device ready');
+        //app.debug('device ready');
+        // set size of new activity pop-up
+        $('#new_activity').css('width',$(window).width() * .75);
+        //console.log($(window).width());
     },
     // Listeners
     obsActivitySelectListener: function(){
@@ -39,8 +56,6 @@ var app = {
         if (is_ready){
             start_activity = true;
             // add to array
-            activity_id = $(this).attr('data-actid');
-            activity_name = $(this).text();
             actObj = {};
             actObj.activity_id = activity_id;
             actObj.activity_name = activity_name;
@@ -62,8 +77,45 @@ var app = {
             //$('#obs_activity_list').fadeOut();
         } else {
             console.log('NOT ready to start');
+        }      
+    },
+    startObsActivityRecord: function(){
+        activity_name = $(this).text();
+        activity_id = $(this).attr('data-actid');
+        if (app.showConfirm('Start '+ activity_name + '?')){
+            actObj = {};
+            actObj.activity_name = activity_name;
+            actObj.activity_id = activity_id;
+            actObj.start_time = moment().format(app.timestamp_format);
+            app.saveActivity(actObj,function(r){
+                //console.log('save done '+ actObj._id);
+                // UI
+                app.addActivityRecordLi(actObj.activity_name,actObj._id,actObj.start_time);
+                $('#activity_records').show();
+            });
+            //console.log(actObj);   
         }
+    },
+    endObsActivityRecord: function(id,callback){ // can take an existing doc object or an id number to find the doc
+        if ((typeof id == "object" ) && (id !== null)){
+            doc = id;
+            doc.end_time = moment().format(app.timestamp_format);
+            app.saveActivity(doc);
+        } else {
+            // find the record, do the update
+            dBase.find(id,function(doc){
+                doc.end_time = moment().format(app.timestamp_format);
+                app.saveActivity(doc);
+            });
+        }
+        callback('test');
         
+    },
+    updateObsActivityNotes: function(id,notes){
+        dBase.find(id,function(doc){
+            doc.activity_notes = notes;
+            app.saveActivity(doc);
+        });
     },
     newObsActivityListener: function(){
         activity_name = $('#new_activity_field').val();
@@ -90,10 +142,22 @@ var app = {
         studyData.all_activities[activity_id] = activity_name;
     },
     stopActivityBtnListener:function(){
-        //console.log('stop activity click');
         record_id = $(this).attr('data-recordid');
-        confirmed = app.showConfirm('Stop '+ app.current_obs_activities[record_id].activity_name + '?');
-        if (confirmed){
+        var this_el = $(this);
+        //console.log('stop activity click '+record_id);
+        dBase.find(record_id,function(doc){
+            if (app.showConfirm('Stop '+ doc.activity_name + '?')){
+                app.endObsActivityRecord(doc,function(){
+                    //UI
+                    el = this_el.parent();
+                    this_el.remove();
+                    el.append(' Stopped at <b>'+ moment().format(app.time_only_format) + '</b>');
+                    el.addClass('stopped');
+                    el.fadeOut(3000);
+                });    
+            }
+        });
+        /*if (app.showConfirm('Stop '+ app.current_obs_activities[record_id].activity_name + '?')){
             trackedObj = app.trackObserverActivityTime(record_id);
             //app.showAlert('activity stopped: ' + trackedObj.activity_name);
 
@@ -108,7 +172,7 @@ var app = {
             el.append(' Stopped at <b>'+ moment(trackedObj.end_time).format(app.time_only_format) + '</b>');
             el.addClass('stopped');
             el.fadeOut(3000);
-        }
+        }*/
         
     },
     pageChangeListener: function(){
@@ -118,12 +182,21 @@ var app = {
     },
     showActivityNotes: function(){
         record_id = $(this).attr('data-recordid');
+        dBase.find(record_id,function(doc){
+            $('#activity_notes_field').val(doc.activity_notes);
+        });
         $('#activity_notes').attr('data-recordid',record_id);
         $('#activity_notes').show();
     },
     addActivityNotes: function(){
+        // 'this' is the "Done" button
+        //console.log($('#activity_notes').attr('data-recordid'));
         id = $('#activity_notes').attr('data-recordid');
-        app.current_obs_activities[id].activity_notes = $('#activity_notes_field').val();
+        notes = $('#activity_notes_field').val();
+        app.updateObsActivityNotes(id,notes);
+        // clear values
+        $('#activity_notes_field').val('');
+        $('#activity_notes').removeAttr('data-recordid');
 
     },
     savePhenotypeSighting: function(){
@@ -159,7 +232,7 @@ var app = {
 
         // remove selected phenotype from array -- each can only be used once per sighting
         $('#phenotype_select option:selected').remove();
-        console.log(app.current_sighting);
+        //console.log(app.current_sighting);
 
     },
     phenoSelectListener: function(){
@@ -194,6 +267,8 @@ var app = {
             $('#add_pheno_btn').hide();
             $('#pheno_obs_records').hide();
             $('#sighting_notes_wrap').hide();
+            $('#sighting_notes').val('');
+            $('#pheno_obs_records ul').html('');
             $('#sightings_status_bar').html('Sighting saved.');
             
         } else { //start time
@@ -222,14 +297,23 @@ var app = {
             //$('#pheno_obs_records').hide();
         } 
     },
-    getCompletedActivities: function(){
-        acts = [];
+    getCompletedActivities: function(callback){
+        /*acts = [];
         for (i in app.current_obs_activities){
             if (app.current_obs_activities[i].end_time){
                 acts.push(app.current_obs_activities[i]);
             }
         }
-        return acts;
+        return acts;*/
+        map = function(doc) {
+            if(doc.objtype == 'activity' && doc.end_time) {
+             emit(doc._id, {activity_name:doc.activity_name,activity_id:doc.activity_id,start_time:doc.start_time,end_time:doc.end_time});
+            }
+        };
+        dBase.db.query({map: map}, {reduce: false}, function(err, response) { 
+            console.log(response);
+            callback(response);
+        });
     },
 
     // UI
@@ -244,35 +328,41 @@ var app = {
     },
     addActivityRecordLi: function(activity_name,id,start_time){
         li_text = activity_name + ', started at <strong>' + moment(start_time).format(app.time_only_format) + '</strong>';
-        edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext edit_activity_btn" data-recordid="'+id+'">Edit</a>';
+        edit_btn = '<a href="#activity_notes" data-rel="popup" class="activity_edit_btn ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext edit_activity_btn"';
+        edit_btn += ' data-recordid="'+id+'">Edit</a>';
         stop_btn = '<a href="#" class="ui-btn ui-btn-inline ui-mini activity_stop_btn" data-recordid="'+id+'">Stop</a>';
-        $('#activity_records ul').append('<li>' + edit_btn + li_text + stop_btn + '</li>');
-        // add listener now that the button/s exist/s, if it hasn't been added already
-        //if (!app.activity_listening){
-            //app.activity_listening = true;
-            $('.activity_stop_btn').bind('click',this.stopActivityBtnListener);
-            //$('.edit_activity_btn').bind('click',this.showActivityNotes);
-        //}
+        $('#activity_records ul').append('<li>' + edit_btn + li_text + stop_btn + '</li>');    
     },
     buildCompletedActivitiesList: function(){
-        acts = app.getCompletedActivities();
-        //console.log(acts);
-        $('#activities_log ul').html('');
-        edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext edit_activity_btn">Edit</a>';
-        for (id in acts){
-            li = '<li>' + edit_btn + acts[id].activity_name ;
-            li += '<b> start:</b> ' + acts[id].start_time +  ' <b>end:</b> ' + acts[id].end_time;
-            li += ' [notes] ';
-            li += '</li>';
-            $('#activities_log ul').append(li);
-        }
-        //$('.edit_activity_btn').bind('click',this.showActivityNotes);
+        //acts = app.getCompletedActivities();
+        app.getCompletedActivities(function(acts){
+            $('#activities_log ul.activities').html('');
+            edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext edit_activity_btn">Edit</a>';
+            rows = acts.rows;
+            for (r in rows){
+                doc = rows[r].value;
+                li = '<li>' + edit_btn + doc.activity_name ;
+                li += '<b> start:</b> ' + doc.start_time +  ' <b>end:</b> ' + doc.end_time;
+                li += ' [notes] ';
+                li += '</li>';
+                $('#activities_log ul.activities').append(li);
+            }
+        });
     },
     // Database
-    saveActivity: function(activityObj){
+    saveActivity: function(activityObj,callback){
         activityObj.objtype = 'activity';
-        /*TODO!! Need to be able to update, not just add*/
-        dBase.add(activityObj);
+        // if this is an existing activity
+        if (activityObj._id && activityObj._rev){
+            dBase.update(activityObj,activityObj._id,activityObj._rev,function(results){
+                activityObj._rev = results.rev;
+            });
+        } else {
+            dBase.add(activityObj,function(results){
+                activityObj._id = results.id;
+                callback();
+            });
+        }   
     },
     couchSync: function(){
         dBase.sync();
@@ -303,6 +393,16 @@ var app = {
                 console.log(results[r]);
             }
          });
+    },
+    testDb: function(){
+        app.my_obj = {a:123,b:543543};
+        /*dBase.add(app.my_obj,function(results){
+            //console.log(results);
+            app.my_obj.db_id = results.id;
+            //my_obj.db_rev = results.rev;
+            
+        });*/
+        app.saveActivity(app.my_obj);  
     }
 };
 

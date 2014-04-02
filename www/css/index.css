@@ -24,9 +24,9 @@ button{
 select{
     display:block;
 }
-#activity_notes{
+/*#activity_notes{
     display: none;
-}
+}*/
 /*
 #frequency_input{
     width:3em;
@@ -52,6 +52,9 @@ select{
 }
 #activity_records{
     display: none;
+}
+#new_activity{
+    padding:2em;
 }
 #msg{
     border: 1px dotted #999;
