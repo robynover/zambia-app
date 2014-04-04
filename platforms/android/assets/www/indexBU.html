@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.2.min.css" />
+        <title>Ethoinformatics</title>
+    </head>
+    <body>
+        <div class="app">
+            <div id="msg"></div>
+            <section id="observer_activity" data-role="page">
+                <h1>Observer Activity</h1>
+                <p id="activity_info">Select Activity to start time</p>
+                <ul data-role="listview" class="activity_list" id="obs_activity_list">
+                    <li data-actid="1">Sleeping</li>
+                    <li data-actid="2">Searching for groups</li>
+                    <li data-actid="3">Driving</li>
+                    <li data-actid="4">Trapping</li>             
+                </ul>
+            </section>
+            <section id="sighting" data-role="page">
+                <div id="timer_status"></div>
+                <h1>Sighting</h1>
+                <div id="sighting_notes_button">
+                    <a href="#sighting_notes_wrap" data-rel="popup"><img src="img/notepad.png" id="sighting_notepad_icon"/> Sighting notes</a>
+                </div>
+                <div id="sighting_notes_wrap" data-role="popup">
+                    <label for="sighting_notes">Sighting Notes</label>
+                    <textarea cols="40" rows="6" name="sighting_notes" id="sighting_notes"></textarea>
+                    <a href="#" data-rel="back" data-role="button" data-theme="a" >Done</a>
+                </div> <!--end sighting_notes_wrap -->
+                <button id="sighting_time" data-inline="true">Start Time</button>
+                <!--<button id="save_sighting_notes" data-inline="true">Save Notes</button>-->
+
+                <div id= "pheno_obs">
+                    <h2>Phenotype observations</h2>
+                    <!--<button id="new_pheno_obs">New</button>-->
+                    <label for="phenotype_select">Phenotype</label>
+                    <select id="phenotype_select"></select>
+                    <input type="text" id="new_phenotype" />
+                    <label for="frequency_slider">Frequency</label>
+                    <input id="frequency_slider" type="range" min="0" max="100" value="50" />
+                    <!--<input id="frequency_input" type="number" maxlength="3" size="3" value="50"/>-->
+                    
+                    <br/>
+                    <label for="pheno_notes">Phenotype Notes</label>
+                    <textarea cols="40" rows="6" name="pheno_notes" id="pheno_notes"></textarea>
+                    <button id="save_pheno_obs" data-inline="true">Add to Sighting</button>
+                </div>
+                
+                <div id="pheno_obs_records">
+                    <h4>Records</h4>
+                    <ul></ul>
+                </div>
+                <button id="sync_remote">Save to Remote</button>
+                <!-- <p>For debugging: <button id="reset">Reset</button></p> -->
+            </section>
+            
+
+
+           
+        </div> <!-- end .app -->
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/lib/jquery-1.8.2.min.js"></script>
+        <script type="text/javascript" src="js/lib/jquery.mobile-1.4.2.min.js"></script>
+
+        <script type="text/javascript" src="js/lib/pouchdb-nightly.min.js"></script>
+        <script type="text/javascript" src="js/lib/moment.min.js"> </script>
+        <script type="text/javascript" src="js/db.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript">
+            $.mobile.allowCrossDomainPages = true;
+            app.initialize();
+        </script>
+
+    </body>
+</html>

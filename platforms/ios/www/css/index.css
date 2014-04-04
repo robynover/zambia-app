@@ -1,0 +1,66 @@
+#timer_status{
+    padding: 1em;
+}
+#timer_status.on{
+    background-color: #CBEDBB;
+}
+#timer_status.off{
+    background-color: #EDBBC7;
+}
+.stopped{
+    background-color: #EDBBC7;
+}
+label{
+    display:block;
+    font-weight: bold;
+}
+#pheno_obs{
+    border: 1px solid #333;
+    padding: .5em;
+}
+button{
+    display:block;
+}
+select{
+    display:block;
+}
+#activity_notes{
+    display: none;
+}
+/*
+#frequency_input{
+    width:3em;
+}
+#frequency_slider{
+    width: 75%;
+    display:block;
+}*/
+#new_phenotype{
+    display:none;
+}
+#sync_remote{
+    display: none;
+}
+#pheno_obs_records{
+    display: none;
+}
+#sighting_notes_wrap{
+    display: none;
+}
+#add_pheno_btn{
+    display: none;
+}
+#activity_records{
+    display: none;
+}
+#new_activity{
+    padding:2em;
+}
+#msg{
+    border: 1px dotted #999;
+    background-color: #eee;
+}
+textarea{
+    width:100%;
+}
+

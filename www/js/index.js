@@ -1,7 +1,7 @@
 var app = {
     // properties
     obs_activity_clock_running: false,
-    current_sighting: new Sighting(),
+    current_sighting: {},
     sighting_notes: '',
     current_obs_activities: [],
     timestamp_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
@@ -11,7 +11,6 @@ var app = {
     all_phenotypes : {}, //initial set of phenotypes
     current_avail_phenotypes: {},// holds the phenotypes available for each sighting
    
-    
     // Application Constructor
     initialize: function() {
         this.bindEvents();
@@ -20,7 +19,10 @@ var app = {
         //init data
         app.all_phenotypes = studyData.all_phenotypes; //initial set of phenotypes
         app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for each sighting
+        // empty array (setting datatype to Array)
+        app.current_sighting.phenotype_sightings = [];
     },
+
     // Bind Event Listeners
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
@@ -64,7 +66,8 @@ var app = {
         // build sightings log list -- this may be attached to an event later
         app.buildSightingsList();   
     },
-    // Listeners
+    
+    // ---------- Listeners -------- //
     obsActivityListener: function(){
         activity_name = $('#new_activity_field').val();
         // need to make a temporary id # -- using text instead of number
@@ -152,25 +155,7 @@ var app = {
             app.buildCompletedActivitiesList();
         }
     },
-    showActivityNotes: function(){
-        record_id = $(this).attr('data-recordid');
-        dBase.find(record_id,function(doc){
-            $('#activity_notes_field').val(doc.activity_notes);
-        });
-        $('#activity_notes').attr('data-recordid',record_id);
-        $('#activity_notes').show();
-    },
-    addActivityNotes: function(){
-        // 'this' is the "Done" button
-        //console.log($('#activity_notes').attr('data-recordid'));
-        id = $('#activity_notes').attr('data-recordid');
-        notes = $('#activity_notes_field').val();
-        app.updateObsActivityNotes(id,notes);
-        // clear values
-        $('#activity_notes_field').val('');
-        $('#activity_notes').removeAttr('data-recordid');
-
-    },
+    
     savePhenotypeToSighting: function(){
         /* phenotype object structure
         { 
@@ -214,6 +199,8 @@ var app = {
                             'aria-valuetext': 50,
                             }); 
         sliderwidget.css('left','50%');
+        $('[type="range"]').slider(); //jQm func to reset slider (?)
+
         $('#pheno_notes').val('');
         $('#new_phenotype').val('');
         $('#new_phenotype').hide();
@@ -232,7 +219,7 @@ var app = {
             $('#new_phenotype').hide();
         }
     },
-    // Controllers 
+    // ------- Controllers ---------- 
     trackObserverActivityTime: function(id){
         actObj = app.current_obs_activities[id];
         if (actObj){
@@ -248,32 +235,31 @@ var app = {
             return false;
         }    
     },
-    
     trackSightingTime: function(){
         if (app.current_sighting.start_time){ //STOP time if it's been started
             app.current_sighting.end_time = moment().format(app.timestamp_format);
             app.current_sighting.sighting_notes = $('#sighting_notes').val();
-            console.log($('#sighting_notes').val());
-            // Save it.
-            app.saveSighting(app.current_sighting);
-            // make a new empty object for the next sighting
-            app.current_sighting = new Sighting();
-            // update the sightings list
-            app.buildSightingsList();
-            
+
+            // ---- Save it.------ //
+            app.saveSighting(app.current_sighting,function(){
+                // make a new empty object for the next sighting
+                app.current_sighting = {};
+                // update the sightings list
+                app.buildSightingsList();
+            });
+
             // UI
             $(this).html('Start Sighting');
             $(this).attr('data-icon','plus');
             $(this).addClass('ui-icon-plus');
             $(this).removeClass('ui-icon-minus');
             $('#add_pheno_btn').hide();
-            $('#pheno_obs_records').hide();
-            $('#sighting_notes_wrap').hide();
+            $('#pheno_obs_records').slideUp();
+            $('#sighting_notes_wrap').slideUp();
             $('#sighting_notes').val('');
             $('#pheno_obs_records ul').html('');
             $('#sightings_status_bar').html('Sighting saved.');
-            //console.log(app.current_sighting);
-
+          
         } else { //START time
             app.current_sighting.start_time = moment().format(app.timestamp_format);//Date.now();
 
@@ -322,7 +308,7 @@ var app = {
         });
     },
     // TODO: order by timestamp!!
-    getPrevSightings: function(callback){
+    getCompletedSightings: function(callback){
         map = function(doc) {
             if(doc.objtype == 'sighting' && doc.end_time) {
              emit(doc._id, {sighting_id:doc.sighting_id,
@@ -339,8 +325,27 @@ var app = {
             callback(response);
         });
     },
+    showActivityNotes: function(){
+        record_id = $(this).attr('data-recordid');
+        dBase.find(record_id,function(doc){
+            $('#activity_notes_field').val(doc.activity_notes);
+        });
+        $('#activity_notes').attr('data-recordid',record_id);
+        $('#activity_notes').show();
+    },
+    addActivityNotes: function(){
+        // 'this' is the "Done" button
+        //console.log($('#activity_notes').attr('data-recordid'));
+        id = $('#activity_notes').attr('data-recordid');
+        notes = $('#activity_notes_field').val();
+        app.updateObsActivityNotes(id,notes);
+        // clear values
+        $('#activity_notes_field').val('');
+        $('#activity_notes').removeAttr('data-recordid');
 
-    // UI
+    },
+
+    // ------------- UI --------------
     makePhenotypeSelect: function(){
         /*console.log('make select btn');
         console.log('current: ');
@@ -380,7 +385,7 @@ var app = {
         });
     },
     buildSightingsList: function(){
-        app.getPrevSightings(function(sites){
+        app.getCompletedSightings(function(sites){
             $('#sightings_log ul.sightings').html('');
             /*edit_btn = '<a href="#sighting_detail" data-rel="popup" 
             class="ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left">';*/
@@ -461,6 +466,7 @@ var app = {
         if(sightingObj._id && sightingObj._rev){
             dBase.update(sightingObj,sightingObj._id,sightingObj._rev,function(results){
                 sightingObj._rev = results.rev;
+                callback();
             });
 
         } else {
@@ -511,12 +517,12 @@ var app = {
             
         });*/
         app.saveActivity(app.my_obj);  
-    }/*,
+    },
     resetDB: function(){
         alert('db reset');
         dBase.db.destroy('zambia');
         dBase.db = PouchDB('zambia');
-    }*/
+    }
 };
 
 /*

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.2.min.css" />
+        <title>Ethoinformatics</title>
+    </head>
+    <body>
+        <div class="app">
+            <!-- sightings page -->
+            <section id="sightings" data-role="page">
+                <!-- TODO: add header dynamically from other section -->
+                <div data-role="header" id="constantheader-wrapper">
+                    <div data-role="navbar" >
+                        <ul>
+                             <li><a href="#sightings" data-icon="eye" class="ui-btn-active">Sightings</a></li>
+                             <li><a href="#observer_activity" data-icon="clock">Observer Activity Log</a></li>
+                        </ul>     
+                    </div> <!-- /navbar -->
+                    <div id="sightings_status_bar" class="ui-bar ui-bar-b" ></div>
+                </div><!-- /header -->
+                <h1 class="sighting_title">New Sighting</h1>
+                
+                <div id="sighting_notes_wrap">
+                    <label for="sighting_notes">Sighting Notes</label>
+                    <textarea cols="40" rows="6" name="sighting_notes" id="sighting_notes"></textarea>
+                    <!--<a href="#" data-rel="back" data-role="button" data-theme="a" >Done</a>-->
+                </div> <!--end sighting_notes_wrap -->
+                <button id="sighting_time" data-inline="true">Start Sighting</button>
+                <!--<button id="save_sighting_notes" data-inline="true">Save Notes</button>-->
+                <a href="#pheno_obs" id="add_pheno_btn" data-rel="popup"
+                data-role="button" data-icon="plus" data-theme="b" data-inline="true">Add Phenotypes</a>
+
+                <div id= "pheno_obs" data-role="popup">
+                    <h2>Phenotype observations</h2>
+                    <!--<button id="new_pheno_obs">New</button>-->
+                    <label for="phenotype_select">Phenotype</label>
+                    <select id="phenotype_select"></select>
+                    <input type="text" id="new_phenotype" />
+                    <label for="frequency_slider">Frequency</label>
+                    <input id="frequency_slider" type="range" min="0" max="100" value="50" />
+                    <!--<input id="frequency_input" type="number" maxlength="3" size="3" value="50"/>-->
+                    
+                    <br/>
+                    <label for="pheno_notes">Phenotype Notes</label>
+                    <textarea cols="40" rows="6" name="pheno_notes" id="pheno_notes"></textarea>
+                    <a id="save_pheno_obs" data-role="button" data-rel="back" data-inline="true">Add to Sighting</a>
+                    
+                </div><!-- end pheno_obs -->
+                
+                <div id="pheno_obs_records">
+                    <h4>Phenotypes</h4>
+                    <ul></ul>
+                </div>
+                
+                <!-- <p>For debugging: <button id="reset">Reset</button></p> -->
+            </section>
+            <!-- observer acvitity page -->
+            <section id="observer_activity" data-role="page">
+                <div data-role="header" id="constantheader-wrapper">
+                    <div data-role="navbar" >
+                        <ul>
+                            <li><a href="#sightings" data-icon="eye">Sightings</a></li>
+                            <li><a href="#observer_activity" data-icon="clock" class="ui-btn-active">Observer Activity Log</a></li>
+                            
+                        </ul>     
+                    </div> <!-- /navbar -->
+                    <div id="status_bar" class="ui-bar ui-bar-b" ></div>
+                </div><!-- /header -->
+                <div data-role="controlgroup" data-type="horizontal">
+                    <a href="#" class="ui-btn ui-corner-all ui-btn-active">Current Activities</a>
+                    <a href="#activities_log" class="ui-btn ui-corner-all">Completed Activities</a>
+                    
+                </div>
+                <div id="activity_records">
+                    <!--<h4>Current Activities</h4>-->
+                    <ul></ul>
+                </div>
+                <h1 id="activity_title">Choose Activity</h1>
+                <!--<h3 id="activity_info">Start Activity</h3>-->
+                <ul data-role="listview" class="activity_list" id="obs_activity_list" class="ui-listview"  data-icon="false">
+                    <li data-actid="1"><a href="#">Sleeping</a></li>
+                    <li data-actid="2"><a href="#">Searching for groups</a></li>
+                    <li data-actid="3"><a href="#">Driving</a></li>
+                    <li data-actid="4"><a href="#">Trapping</a></li> 
+                    
+                </ul>  
+                <a href="#new_activity" data-rel="popup" data-role="button" data-icon="plus" data-inline="true">New Activity</a>      
+                <div id="new_activity" data-role="popup">
+                    <label for="new_activity_field">New Activity</label>
+                    <input type="text" id="new_activity_field" />
+                    <a href="#sighting" data-rel="back" data-role="button" data-theme="a" id="new_act_btn" >Done</a>
+                </div>
+                <!--<div id="activity_notes">
+                    <label for="activity_notes_field">Activity Notes</label>
+                    <textarea cols="40" rows="6" id="activity_notes_field"></textarea>
+                    <a href="#" data-rel="back" data-role="button" data-theme="a" id="activity_notes_done_btn">Done</a>
+                </div>-->
+            </section>
+            <!-- activities log page -->
+            <section id="activities_log" data-role="page">
+                <div data-role="header" id="constantheader-wrapper">
+                    <div data-role="navbar" >
+                        <ul>
+                            <li><a href="#sightings" data-icon="eye">Sightings</a></li>
+                            <li><a href="#observer_activity" data-icon="clock" class="ui-btn-active">Observer Activity Log</a></li>
+                            
+                        </ul>     
+                    </div> <!-- /navbar -->
+                    <div id="status_bar" class="ui-bar ui-bar-b" ></div>
+                </div><!-- /header -->
+                <div data-role="controlgroup" data-type="horizontal">
+                    <a href="#observer_activity" class="ui-btn ui-corner-all">Current Activities</a>
+                    <a href="#activities_log" class="ui-btn ui-corner-all  ui-btn-active">Completed Activities</a>
+                    
+                </div>
+                <!--<h4>Completed Activities</h4>-->
+                <ul class="activities"></ul>
+            </section>
+
+            
+            
+
+
+           
+        </div> <!-- end .app -->
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/lib/jquery-1.8.2.min.js"></script>
+        <script type="text/javascript" src="js/lib/jquery.mobile-1.4.2.min.js"></script>
+
+        <script type="text/javascript" src="js/lib/pouchdb-nightly.min.js"></script>
+        <script type="text/javascript" src="js/lib/moment.min.js"> </script>
+        <script type="text/javascript" src="js/db.js"></script>
+        <script type="text/javascript" src="js/studyData.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript">
+            $.mobile.allowCrossDomainPages = true;
+            app.initialize();
+        </script>
+
+    </body>
+</html>
