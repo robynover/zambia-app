@@ -1,3 +1,4 @@
+
 #timer_status{
     padding: 1em;
 }
@@ -17,6 +18,15 @@ label{
 #pheno_obs{
     border: 1px solid #333;
     padding: .5em;
+}
+.site_start{
+    border:1px solid red;
+    display: inline;
+    padding: 0.2em;
+}
+.sighting_notes{
+    border:1px solid #c9c9c9;
+    padding: 1em;
 }
 button{
     display:block;
@@ -49,6 +59,7 @@ select{
 }
 #add_pheno_btn{
     display: none;
+    font-weight: 400;
 }
 #activity_records{
     display: none;
@@ -60,7 +71,11 @@ select{
     border: 1px dotted #999;
     background-color: #eee;
 }
+#sightings_status_bar{
+    font-weight: 400;
+}
 textarea{
-    width:100%;
+    /*width:100%;
+    height:25%;*/
 }
 
