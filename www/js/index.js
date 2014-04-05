@@ -2,6 +2,7 @@ var app = {
     // properties
     obs_activity_clock_running: false,
     current_sighting: {},
+    sighting_currently_editing: {},
     sighting_notes: '',
     current_obs_activities: [],
     timestamp_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
@@ -26,7 +27,6 @@ var app = {
     // Bind Event Listeners
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
-        /*$('#obs_activity_list > li').bind('click',this.obsActivitySelectListener);*/
         $('#obs_activity_list > li').bind('click',this.startObsActivityRecord);
         $('#sighting_time').bind('click',this.trackSightingTime);
         $('#new_act_btn').bind('click',this.obsActivityListener); 
@@ -50,6 +50,7 @@ var app = {
         $('ul.sightings').on('click','.sighting_item',app.buildSightingDetailPg);
         $('#sighting_detail').on('click','.edit-site-start',function(){$('#site_start_input').toggle()});
         $('#sighting_detail').on('click','.edit-site-end',function(){$('#site_end_input').toggle()});
+        $('#sighting_detail').on('click','#update_sighting_btn',this.updateSightingListener);
 
         
     },
@@ -219,6 +220,34 @@ var app = {
             $('#new_phenotype').hide();
         }
     },
+    updateSightingListener: function(){
+        app.sighting_currently_editing.sighting_notes = $('#sighting_detail > p.sighting_notes').text();
+        orig_date = moment(app.sighting_currently_editing.start_time).format(app.date_only_format);
+        if(isNaN(orig_date)){ // if the date got corrupted, set it to today
+            orig_date = moment().format(app.date_only_format);
+        }
+
+        updated_start = $('#sighting_detail input#hr_start').val() + ':'+$('#sighting_detail input#min_start').val();
+        updated_end = $('#sighting_detail input#hr_end').val() + ':'+$('#sighting_detail input#min_end').val();
+        app.sighting_currently_editing.start_time = moment(orig_date + ' ' + updated_start).format(app.timestamp_format);
+        app.sighting_currently_editing.end_time = moment(orig_date + ' ' + updated_end).format(app.timestamp_format);
+
+        //console.log(app.sighting_currently_editing._id);
+        //console.log(updated_start);
+        //console.log(moment(orig_date + ' ' + updated_end).format(app.timestamp_format));
+        app.saveSighting(app.sighting_currently_editing,function(){
+            // close the pop-up window
+            $("#sighting_detail").popup("close", {"transition": "pop"});
+
+            /* change the li value <-- you could do this and not reload from DB, but it won't update the sort order
+            new_content = 'start: ' + moment(app.sighting_currently_editing.start_time).format(app.time_only_format);
+            new_content += ' end: ' + moment(app.sighting_currently_editing.end_time).format(app.time_only_format);
+            $("a[data-dbid='"+ app.sighting_currently_editing._id +"']").text(new_content);
+            */
+            app.buildSightingsList();
+        });
+    },
+
     // ------- Controllers ---------- 
     trackObserverActivityTime: function(id){
         actObj = app.current_obs_activities[id];
@@ -311,7 +340,7 @@ var app = {
     getCompletedSightings: function(callback){
         map = function(doc) {
             if(doc.objtype == 'sighting' && doc.end_time) {
-             emit(doc._id, {sighting_id:doc.sighting_id,
+             emit(doc.start_time, {sighting_id:doc.sighting_id,
                             start_time:doc.start_time,
                             end_time:doc.end_time,
                             sighting_notes: doc.sighting_notes,
@@ -320,7 +349,7 @@ var app = {
                             });
             }
         };
-        dBase.db.query({map: map}, {reduce: false}, function(err, response) { 
+        dBase.db.query({map: map}, {reduce: false, descending:true}, function(err, response) { 
             //console.log(response);
             callback(response);
         });
@@ -398,8 +427,13 @@ var app = {
                 a_tag.attr({href:"#sighting_detail",'data-dbid':doc.id});
                 a_tag.addClass("sighting_item ui-btn ui-shadow ui-corner-all ui-icon-eye ui-btn-icon-left");
                 //li = '<li>' + edit_btn;
-                a_text = 'start: ' + moment(doc.start_time).format(app.time_only_format);
-                a_text += '&nbsp;end: ' + moment(doc.end_time).format(app.time_only_format);
+                a_text = '<b>' + moment(doc.start_time).format(app.time_only_format);
+                a_text += ' &mdash; ' + moment(doc.end_time).format(app.time_only_format) + '</b>';
+                /*if (doc.sighting_notes){
+                    a_text += ' ' + doc.sighting_notes.substring(0,14) + '...';
+                }*/
+                a_text += ' &nbsp; ' + doc.sighting_notes;
+                
                 a_tag.html(a_text);
                 li_tag.append(a_tag);
                 //li += doc.id;
@@ -407,35 +441,36 @@ var app = {
                 $('#sightings_log ul.sightings').append(li_tag);
             }
             $('#sightings_log ul.sightings').listview('refresh'); //jQm re-parse css/js
-            
         });
     },
     buildSightingDetailPg: function(){
         db_id = $(this).attr('data-dbid');
-        console.log(db_id);
+        //console.log(db_id);
+        // note: this is a good candidate for templating!
         dBase.find(db_id,function(doc){
-            //console.log('find');
-            //console.log(doc);
-            content =  '<h1>Sighting Detail</h1>';
+            // store this object so it can be updated on submit listener
+            app.sighting_currently_editing = doc;
+            //build page
+            content = '<a href="#" data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>';
+            content +=  '<h1>Sighting Detail</h1>';
             content += '<p><b>Date:</b> '+ moment(doc.start_time).format(app.date_only_format) + '<br/><b>DB id:</b> ' + doc._id + '</p>';
             content += '<h4>Start Time</h4><p>';
             content += '<a href="#" class="edit-site-start ui-btn ui-nodisc-icon ui-btn-b ui-corner-all ui-icon-edit ui-btn-icon-notext ui-btn-inline">edit</a> ';
             content += moment(doc.start_time).format(app.time_only_format) + '</p>';
-            content += '<div id="site_start_input"> <input type="number" value="'+ moment(doc.start_time).format('HH')+'"/> : ';
-            content += '<input type="number" value="'+ moment(doc.start_time).format('mm')+'"/></div>';
+            content += '<div id="site_start_input" class="time_input"> <input id="hr_start" type="number" value="'+ moment(doc.start_time).format('HH')+'"/> : ';
+            content += '<input id="min_start" type="number" value="'+ moment(doc.start_time).format('mm')+'"/></div>';
             //type="time" new in html5
             content += '<h4>End Time</h4><p>';
             content += '<a href="#" class="edit-site-end ui-btn ui-nodisc-icon ui-btn-b ui-corner-all ui-icon-edit ui-btn-icon-notext ui-btn-inline">edit</a> ';
             content += moment(doc.end_time).format(app.time_only_format) + '</p>';
-            content += '<div id="site_end_input"> <input type="number" value="'+ moment(doc.end_time).format('HH')+'"/> : ';
-            content += '<input type="number" value="'+ moment(doc.end_time).format('mm')+'"/></div>';
+            content += '<div id="site_end_input" class="time_input"> <input id="hr_end" type="number" value="'+ moment(doc.end_time).format('HH')+'"/> : ';
+            content += '<input id="min_end" type="number" value="'+ moment(doc.end_time).format('mm')+'"/></div>';
             content += '<p><br/></p><h4>Notes</h4> (tap to edit)';
             content += '<p contenteditable="true" class="sighting_notes">';
             content += doc.sighting_notes + '</p>';
-            content += '<button class="ui-btn ui-btn-inline">Update</button>';
+            content += '<a href="#" id="update_sighting_btn" class="ui-btn ui-corner-all ui-icon-check ui-btn-inline ui-btn-icon-left">Update</a>';
             $('#sighting_detail').html(content);
             $('#site_start_input, #site_end_input').hide();
-
 
             //manually pop up
             $("#sighting_detail").popup("open", {
@@ -527,8 +562,14 @@ var app = {
 
 /*
 TODO: 
-list of activities should be clickable, so you can stop activity
-activity record detail modal or page
+- list of activities should be clickable, so you can stop/edit activity
+- activity record detail modal or page (like sightings)
+- show current activities on top bar or in pull-down, modal, etc
+- maybe a top left corner drop-down to easily get to diff sections/ to show current activitiess/sightings
+- IMPORTANT: get lists of activities from outside DB and/or config file
 
-add sightings to pouchDB (like with activities)
+
+x add sightings to pouchDB (like with activities)
+x make update button work on sightings detail page. add close or cancel btn
+
 */

@@ -28,11 +28,22 @@ label{
     border:1px solid #c9c9c9;
     padding: 1em;
 }
+li a.sighting_item{
+    font-weight: normal;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 2em;
+}
 button{
     display:block;
 }
 select{
     display:block;
+}
+.time_input input{
+    width: 2.5em;
+    text-align: center;
 }
 /*#activity_notes{
     display: none;
@@ -78,4 +89,6 @@ textarea{
     /*width:100%;
     height:25%;*/
 }
-
+#obs_activity_list{
+    margin-bottom: 0;
+}

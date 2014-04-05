@@ -25,7 +25,6 @@ var dBase = {
 		this.db.put(record, _id, _rev, function (err, result) {
 			if (!err) {
 				console.log('Successfully updated a record!');
-				//alert('Successfully added a record!');
 				//console.log(result);
 				callback(result);
 			} else {
