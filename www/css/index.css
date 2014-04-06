@@ -9,7 +9,11 @@
     background-color: #EDBBC7;
 }
 .stopped{
-    background-color: #EDBBC7;
+    /*background-color: #EDBBC7;*/
+    border: 1px solid rgb(212, 44, 44);
+    border-left: none;
+    border-right: none;
+    background-color: #DCD6D6;
 }
 label{
     display:block;
@@ -24,7 +28,7 @@ label{
     display: inline;
     padding: 0.2em;
 }
-.sighting_notes{
+.sighting_notes,.activity_notes{
     border:1px solid #c9c9c9;
     padding: 1em;
 }
@@ -35,6 +39,13 @@ li a.sighting_item{
     white-space: nowrap;
     padding-right: 2em;
 }
+#current_activity_records ul{
+    margin: 1em 0 0 0;
+    list-style-type: none;
+    background-color: #f6f6f6;
+    border-color: #ddd;
+    color: #333;
+}
 button{
     display:block;
 }
@@ -44,6 +55,16 @@ select{
 .time_input input{
     width: 2.5em;
     text-align: center;
+}
+a.activity_stop_btn{
+    margin-left: 1em;
+}
+/* make the stop button red */
+.activity_stop_btn.ui-mini.ui-btn-icon-left:after{
+    background-color: rgb(212, 44, 44);
+}
+.activity_item{
+    text-align: left;
 }
 /*#activity_notes{
     display: none;
@@ -91,4 +112,13 @@ textarea{
 }
 #obs_activity_list{
     margin-bottom: 0;
+}
+.custom_list_item{
+    background-color: #f6f6f6;
+    border-color: #ddd;
+    color: #333;
+    text-shadow: 0 1px 0 #f3f3f3;
+}
+#activity_detail{
+    padding: 1em;
 }

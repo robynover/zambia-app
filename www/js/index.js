@@ -3,6 +3,7 @@ var app = {
     obs_activity_clock_running: false,
     current_sighting: {},
     sighting_currently_editing: {},
+    activity_currently_editing: {},
     sighting_notes: '',
     current_obs_activities: [],
     timestamp_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
@@ -22,6 +23,9 @@ var app = {
         app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for each sighting
         // empty array (setting datatype to Array)
         app.current_sighting.phenotype_sightings = [];
+        //compile templates
+        app.sighting_detail_tpl = Handlebars.compile($("#sighting_detail_tpl").html());
+        app.activity_detail_tpl = Handlebars.compile($("#activity_detail_tpl").html());
     },
 
     // Bind Event Listeners
@@ -45,20 +49,25 @@ var app = {
                 $('#activity_notes_field').val(doc.activity_notes);
             });
         });
+        $('ul.activities').on('click','.activity_item',app.buildActivityDetailPg);
         $('#current_activity_records').on('click','.activity_stop_btn',this.stopActivityBtnListener);
-        $('#reset').bind('click',this.resetDB);
+        $('#activity_detail').on('click','.edit_activity_start',function(){$('#activity_start_input').toggle()});
+        $('#activity_detail').on('click','.edit_activity_end',function(){$('#activity_end_input').toggle()});
+         
+        //sightings
         $('ul.sightings').on('click','.sighting_item',app.buildSightingDetailPg);
-        $('#sighting_detail').on('click','.edit-site-start',function(){$('#site_start_input').toggle()});
-        $('#sighting_detail').on('click','.edit-site-end',function(){$('#site_end_input').toggle()});
+        $('#sighting_detail').on('click','.edit_sighting_start',function(){$('#sighting_start_input').toggle()});
+        $('#sighting_detail').on('click','.edit_sighting_end',function(){$('#sighting_end_input').toggle()});
         $('#sighting_detail').on('click','#update_sighting_btn',this.updateSightingListener);
-
-        
+     
+        // debug
+         $('#reset').bind('click',this.resetDB);
     },
     // deviceready Event Handler
     onDeviceReady: function() {
         //app.debug('device ready');
         // set size of pop-ups
-        $('#new_activity,#pheno_obs,#sighting_detail').css({
+        $('#new_activity,#pheno_obs,#sighting_detail,#activity_detail').css({
                                 'min-width':$(window).width() * .75,
                                 'min-height':$(window).height() * .75,
                                 'padding':'1em'
@@ -116,11 +125,13 @@ var app = {
             doc = id;
             doc.end_time = moment().format(app.timestamp_format);
             app.saveActivity(doc);
+            callback();
         } else {
             // find the record, do the update
             dBase.find(id,function(doc){
                 doc.end_time = moment().format(app.timestamp_format);
                 app.saveActivity(doc);
+                callback();
             });
         }
         //callback('test');
@@ -135,21 +146,22 @@ var app = {
     
     stopActivityBtnListener:function(){
         record_id = $(this).attr('data-recordid');
-        var this_el = $(this);
+        var this_btn = $(this); //stop_btn
         //console.log('stop activity click '+record_id);
         dBase.find(record_id,function(doc){
             if (app.showConfirm('Stop '+ doc.activity_name + '?')){
                 app.endObsActivityRecord(doc,function(){
+                    console.log('endObsAc');
                     //UI
-                    el = this_el.parent();
-                    this_el.remove();
+                    el = this_btn.parent();
+                    
                     el.append(' Stopped at <b>'+ moment().format(app.time_only_format) + '</b>');
                     el.addClass('stopped');
-                    el.fadeOut(3000);
+                    el.fadeOut(3000,function(){this_btn.remove()});
+                    
                 });    
             }
-        });
-        
+        });     
     },
     pageChangeListener: function(){
         if (location.hash == '#activities_log'){
@@ -328,11 +340,16 @@ var app = {
         // pouch db map/reduce func: get objects of type 'activity' that have ended
         map = function(doc) {
             if(doc.objtype == 'activity' && doc.end_time) {
-             emit(doc._id, {activity_name:doc.activity_name,activity_id:doc.activity_id,start_time:doc.start_time,end_time:doc.end_time});
+             emit(doc._id, {activity_name:doc.activity_name,
+                            activity_id:doc.activity_id,
+                            start_time:doc.start_time,
+                            end_time:doc.end_time,
+                            id:doc._id
+                        });
             }
         };
         dBase.db.query({map: map}, {reduce: false}, function(err, response) { 
-            console.log(response);
+            //console.log(response);
             callback(response);
         });
     },
@@ -391,47 +408,50 @@ var app = {
     },
     addActivityRecordLi: function(activity_name,id,start_time){
         li_text = activity_name + ', started at <strong>' + moment(start_time).format(app.time_only_format) + '</strong>';
-        edit_btn = '<a href="#activity_notes" data-rel="popup" class="activity_edit_btn ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext edit_activity_btn"';
+        edit_btn = '<a href="#activity_notes" data-rel="popup" class="activity_edit_btn ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext ui-corner-all"';
         edit_btn += ' data-recordid="'+id+'">Edit</a>';
-        stop_btn = '<a href="#" class="ui-btn ui-btn-inline ui-mini activity_stop_btn" data-recordid="'+id+'">Stop</a>';
-        $('#current_activity_records ul').append('<li>' + edit_btn + li_text + stop_btn + '</li>');    
+        stop_btn = ' <a href="#" class="activity_stop_btn ui-btn ui-btn-inline ui-btn-icon-left ui-corner-all ui-icon-minus ui-mini" data-recordid="'+id+'">Stop</a>';
+        $('#current_activity_records ul').append('<li>' + edit_btn + li_text + stop_btn + '</li>'); 
+        //$('#current_activity_records ul').append('<li><a href="#" class="ui-icon-edit">'+ li_text +'</a><a href="#" class="ui-icon-edit">stop</a></li>'); 
     },
     buildCompletedActivitiesList: function(){
         //acts = app.getCompletedActivities();
         app.getCompletedActivities(function(acts){
             $('#activities_log ul.activities').html('');
-            edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext edit_activity_btn">Edit</a>';
+            //edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext activity_edit_btn">Edit</a>';
             rows = acts.rows;
             for (r in rows){
                 doc = rows[r].value;
-                console.log(doc);
-                li = '<li>' + edit_btn + doc.activity_name ;
-                li += '<b> start:</b> ' + doc.start_time +  ' <b>end:</b> ' + doc.end_time;
-                li += ' [notes] ';
-                li += '</li>';
-                $('#activities_log ul.activities').append(li);
+                li_tag = $('<li></li>');
+                a_tag = $('<a></a>');
+                a_tag.attr({href:"#activity_detail",'data-dbid':doc.id});
+                a_tag.addClass("activity_item ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left");
+                a_text = '<b>' + moment(doc.start_time).format(app.time_only_format);
+                a_text += ' &mdash; ' + moment(doc.end_time).format(app.time_only_format) + '</b>';
+                a_text += ' &nbsp; ' + doc.activity_notes;
+                a_tag.html(a_text);
+                li_tag.append(a_tag);
+                $('#activities_log ul.activities').append(li_tag);
             }
+            $('#activities_log ul.activities').listview('refresh'); //jQm re-parse css/js
         });
     },
     buildSightingsList: function(){
-        app.getCompletedSightings(function(sites){
+        app.getCompletedSightings(function(sightings){
             $('#sightings_log ul.sightings').html('');
             /*edit_btn = '<a href="#sighting_detail" data-rel="popup" 
             class="ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left">';*/
-            rows = sites.rows;
+            rows = sightings.rows;
             for (r in rows){
                 doc = rows[r].value;
                 //console.log(doc);
                 li_tag = $('<li></li>');
                 a_tag = $('<a></a>');
                 a_tag.attr({href:"#sighting_detail",'data-dbid':doc.id});
-                a_tag.addClass("sighting_item ui-btn ui-shadow ui-corner-all ui-icon-eye ui-btn-icon-left");
+                a_tag.addClass("sighting_item ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left");
                 //li = '<li>' + edit_btn;
                 a_text = '<b>' + moment(doc.start_time).format(app.time_only_format);
                 a_text += ' &mdash; ' + moment(doc.end_time).format(app.time_only_format) + '</b>';
-                /*if (doc.sighting_notes){
-                    a_text += ' ' + doc.sighting_notes.substring(0,14) + '...';
-                }*/
                 a_text += ' &nbsp; ' + doc.sighting_notes;
                 
                 a_tag.html(a_text);
@@ -445,39 +465,59 @@ var app = {
     },
     buildSightingDetailPg: function(){
         db_id = $(this).attr('data-dbid');
-        //console.log(db_id);
-        // note: this is a good candidate for templating!
         dBase.find(db_id,function(doc){
             // store this object so it can be updated on submit listener
             app.sighting_currently_editing = doc;
-            //build page
-            content = '<a href="#" data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>';
-            content +=  '<h1>Sighting Detail</h1>';
-            content += '<p><b>Date:</b> '+ moment(doc.start_time).format(app.date_only_format) + '<br/><b>DB id:</b> ' + doc._id + '</p>';
-            content += '<h4>Start Time</h4><p>';
-            content += '<a href="#" class="edit-site-start ui-btn ui-nodisc-icon ui-btn-b ui-corner-all ui-icon-edit ui-btn-icon-notext ui-btn-inline">edit</a> ';
-            content += moment(doc.start_time).format(app.time_only_format) + '</p>';
-            content += '<div id="site_start_input" class="time_input"> <input id="hr_start" type="number" value="'+ moment(doc.start_time).format('HH')+'"/> : ';
-            content += '<input id="min_start" type="number" value="'+ moment(doc.start_time).format('mm')+'"/></div>';
-            //type="time" new in html5
-            content += '<h4>End Time</h4><p>';
-            content += '<a href="#" class="edit-site-end ui-btn ui-nodisc-icon ui-btn-b ui-corner-all ui-icon-edit ui-btn-icon-notext ui-btn-inline">edit</a> ';
-            content += moment(doc.end_time).format(app.time_only_format) + '</p>';
-            content += '<div id="site_end_input" class="time_input"> <input id="hr_end" type="number" value="'+ moment(doc.end_time).format('HH')+'"/> : ';
-            content += '<input id="min_end" type="number" value="'+ moment(doc.end_time).format('mm')+'"/></div>';
-            content += '<p><br/></p><h4>Notes</h4> (tap to edit)';
-            content += '<p contenteditable="true" class="sighting_notes">';
-            content += doc.sighting_notes + '</p>';
-            content += '<a href="#" id="update_sighting_btn" class="ui-btn ui-corner-all ui-icon-check ui-btn-inline ui-btn-icon-left">Update</a>';
+            //use template
+            context_obj = {
+                day: moment(doc.start_time).format(app.date_only_format),
+                dbid: doc._id,
+                start_time: moment(doc.start_time).format(app.time_only_format),
+                hr_start: moment(doc.start_time).format('HH'),
+                min_start: moment(doc.start_time).format('mm'),
+                end_time: moment(doc.end_time).format(app.time_only_format),
+                hr_end: moment(doc.end_time).format('HH'),
+                min_end: moment(doc.end_time).format('mm'),
+                sighting_notes: doc.sighting_notes
+            };
+
+            content = app.sighting_detail_tpl(context_obj);
             $('#sighting_detail').html(content);
-            $('#site_start_input, #site_end_input').hide();
+
+            $('#sighting_start_input, #sighting_end_input').hide();
 
             //manually pop up
             $("#sighting_detail").popup("open", {
                 "transition": "pop"
             });
         }); 
-
+    },
+    buildActivityDetailPg: function(){
+        db_id = $(this).attr('data-dbid');
+        dBase.find(db_id,function(doc){
+            // store this object so it can be updated on submit listener
+            app.activity_currently_editing = doc;
+            //use template
+            context_obj = {
+                day: moment(doc.start_time).format(app.date_only_format),
+                dbid: doc._id,
+                activity_name: doc.activity_name,
+                start_time: moment(doc.start_time).format(app.time_only_format),
+                hr_start: moment(doc.start_time).format('HH'),
+                min_start: moment(doc.start_time).format('mm'),
+                end_time: moment(doc.end_time).format(app.time_only_format),
+                hr_end: moment(doc.end_time).format('HH'),
+                min_end: moment(doc.end_time).format('mm'),
+                activity_notes: doc.sighting_notes
+            };
+            content = app.activity_detail_tpl(context_obj);
+            $('#activity_detail').html(content);
+            $('#activity_start_input, #activity_end_input').hide();
+            //manually pop up
+            $("#activity_detail").popup("open", {
+                "transition": "pop"
+            });
+        });
     },
 
     // Database
@@ -562,11 +602,13 @@ var app = {
 
 /*
 TODO: 
-- list of activities should be clickable, so you can stop/edit activity
-- activity record detail modal or page (like sightings)
+x- list of activities should be clickable, so you can stop/edit activity
+    still TODO:  update button action in activity detail popup 
+x - activity record detail modal or page (like sightings)
 - show current activities on top bar or in pull-down, modal, etc
 - maybe a top left corner drop-down to easily get to diff sections/ to show current activitiess/sightings
-- IMPORTANT: get lists of activities from outside DB and/or config file
+- IMPORTANT: get lists of activities from outside DB and/or config file (like w/ sightings) 
+            -- make a buildActivityList func similar to buildSightings...
 
 
 x add sightings to pouchDB (like with activities)
