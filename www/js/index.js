@@ -12,22 +12,20 @@ var app = {
     activity_listening: false,
     all_phenotypes : {}, //initial set of phenotypes
     current_avail_phenotypes: {},// holds the phenotypes available for each sighting
+    in_progress: {activities:[],sighting: {} }, // holds the names of objects (n activities or 1 sighting) started but not finished
    
     // Application Constructor
     initialize: function() {
         this.bindEvents();
         this.onDeviceReady(); //uncomment for browser debugging
-        
-        //init data
-        app.all_phenotypes = studyData.all_phenotypes; //initial set of phenotypes
-        app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for each sighting
-        // empty array (setting datatype to Array)
-        app.current_sighting.phenotype_sightings = [];
-        //compile templates
-        app.sighting_detail_tpl = Handlebars.compile($("#sighting_detail_tpl").html());
-        app.activity_detail_tpl = Handlebars.compile($("#activity_detail_tpl").html());
+        this.initData();     
     },
-
+    // set up the starting data -- from db or config file
+    initData: function(){
+        app.all_phenotypes = studyData.all_phenotypes; //initial set of phenotypes
+        app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for each sighting 
+        app.current_sighting.phenotype_sightings = []; // set datatype of property to Array
+    },
     // Bind Event Listeners
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
@@ -74,39 +72,59 @@ var app = {
                             });   
 
         // build sightings log list -- this may be attached to an event later
-        app.buildSightingsList();   
+        app.buildSightingsList(); 
+        app.setUpUI();  
+
+    },
+    setUpUI: function(){
+        //compile templates
+        app.sighting_detail_tpl = Handlebars.compile($("#sighting_detail_tpl").html());
+        app.activity_detail_tpl = Handlebars.compile($("#activity_detail_tpl").html());
+        _activites_menu_tpl   = Handlebars.compile($('#activities_menu_tpl').html()); //local var bc content is not dynamic
+        $('.activities_menu').html(_activites_menu_tpl());
+        // attach headers w/ template
+        _header_tpl = Handlebars.compile($('#header_tpl').html());
+        $('[data-role="header"]').html(_header_tpl());
+
+        app.buildActiviesInProgressList();
+
+        
     },
     
     // ---------- Listeners -------- //
     obsActivityListener: function(){
+        console.log('obsActivityListener');
         activity_name = $('#new_activity_field').val();
         // need to make a temporary id # -- using text instead of number
         activity_id = 'temp_id_' + activity_name;
         actObj = {};
         actObj.activity_id = activity_id;
         actObj.activity_name = activity_name;
-        //app.current_obs_activities[activity_id] = actObj;
+        //add activity to list
         app.current_obs_activities.push(actObj);
         index = app.current_obs_activities.length - 1;
         // start activity timer
         trackedObj = app.trackObserverActivityTime(index);
         $('#current_activity_records').show();
-        //app.addActivityRecordLi(activity_name,activity_id,trackedObj.start_time);
+
+        // show the new record in the <ul> list of activities in progress
         app.addActivityRecordLi(activity_name,index,trackedObj.start_time);
 
-        //add new activity to selection list
+        // add new activity to selection list
         // remove last child class and add new last child
         $('#obs_activity_list li:last-child').removeClass('ui-last-child');
-        $('#obs_activity_list').append('<li class="ui-last-child" data-actid="'+activity_id+'"><a class="ui-btn" href="#">'+activity_name+'</a></li>');
+        $('#obs_activity_list').append('<li class="ui-last-child" data-actid="'+activity_id+'"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">'+activity_name+'</a></li>');
 
         //add to master list of activities
         studyData.all_activities[activity_id] = activity_name;
     },
     startObsActivityRecord: function(){ // new record
+        console.log('start activity');
         activity_name = $(this).text();
         activity_id = $(this).attr('data-actid');
         if (app.showConfirm('Start '+ activity_name + '?')){
             actObj = {};
+            actObj.objtype = 'activity';
             actObj.activity_name = activity_name;
             actObj.activity_id = activity_id;
             actObj.start_time = moment().format(app.timestamp_format);
@@ -116,6 +134,7 @@ var app = {
                 // UI
                 app.addActivityRecordLi(actObj.activity_name,actObj._id,actObj.start_time);
                 $('#current_activity_records').show();
+                $('#status_bar').html('Observer Activity Started');
             });
             //console.log(actObj);   
         }
@@ -141,24 +160,24 @@ var app = {
         dBase.find(id,function(doc){
             doc.activity_notes = notes;
             app.saveActivity(doc);
+            $('#status_bar').html('Observer Activity Notes Updated');
         });
     },
     
     stopActivityBtnListener:function(){
+        console.log('stop');
         record_id = $(this).attr('data-recordid');
         var this_btn = $(this); //stop_btn
         //console.log('stop activity click '+record_id);
         dBase.find(record_id,function(doc){
             if (app.showConfirm('Stop '+ doc.activity_name + '?')){
                 app.endObsActivityRecord(doc,function(){
-                    console.log('endObsAc');
                     //UI
                     el = this_btn.parent();
-                    
                     el.append(' Stopped at <b>'+ moment().format(app.time_only_format) + '</b>');
                     el.addClass('stopped');
                     el.fadeOut(3000,function(){this_btn.remove()});
-                    
+                    $('#status_bar').html('Observer Activity Stopped');
                 });    
             }
         });     
@@ -299,7 +318,7 @@ var app = {
             $('#sighting_notes_wrap').slideUp();
             $('#sighting_notes').val('');
             $('#pheno_obs_records ul').html('');
-            $('#sightings_status_bar').html('Sighting saved.');
+            $('#status_bar').html('Sighting saved.');
           
         } else { //START time
             app.current_sighting.start_time = moment().format(app.timestamp_format);//Date.now();
@@ -314,7 +333,7 @@ var app = {
 
             // UI
             // status bar 
-            $('#sightings_status_bar').html('Sighting in Progress');
+            $('#status_bar').html('Sighting in Progress');
             $(this).html('End Sighting');
             $(this).attr('data-icon','minus');
             $(this).addClass('ui-icon-minus');
@@ -336,41 +355,7 @@ var app = {
             //$('#pheno_obs_records').hide();
         } 
     },
-    getCompletedActivities: function(callback){
-        // pouch db map/reduce func: get objects of type 'activity' that have ended
-        map = function(doc) {
-            if(doc.objtype == 'activity' && doc.end_time) {
-             emit(doc._id, {activity_name:doc.activity_name,
-                            activity_id:doc.activity_id,
-                            start_time:doc.start_time,
-                            end_time:doc.end_time,
-                            id:doc._id
-                        });
-            }
-        };
-        dBase.db.query({map: map}, {reduce: false}, function(err, response) { 
-            //console.log(response);
-            callback(response);
-        });
-    },
-    // TODO: order by timestamp!!
-    getCompletedSightings: function(callback){
-        map = function(doc) {
-            if(doc.objtype == 'sighting' && doc.end_time) {
-             emit(doc.start_time, {sighting_id:doc.sighting_id,
-                            start_time:doc.start_time,
-                            end_time:doc.end_time,
-                            sighting_notes: doc.sighting_notes,
-                            phenotype_sightings: doc.phenotype_sightings,
-                            id:doc._id
-                            });
-            }
-        };
-        dBase.db.query({map: map}, {reduce: false, descending:true}, function(err, response) { 
-            //console.log(response);
-            callback(response);
-        });
-    },
+    
     showActivityNotes: function(){
         record_id = $(this).attr('data-recordid');
         dBase.find(record_id,function(doc){
@@ -421,19 +406,38 @@ var app = {
             //edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext activity_edit_btn">Edit</a>';
             rows = acts.rows;
             for (r in rows){
+                
                 doc = rows[r].value;
+                console.log(doc);
                 li_tag = $('<li></li>');
                 a_tag = $('<a></a>');
                 a_tag.attr({href:"#activity_detail",'data-dbid':doc.id});
                 a_tag.addClass("activity_item ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left");
                 a_text = '<b>' + moment(doc.start_time).format(app.time_only_format);
                 a_text += ' &mdash; ' + moment(doc.end_time).format(app.time_only_format) + '</b>';
-                a_text += ' &nbsp; ' + doc.activity_notes;
+                if (doc.activity_notes){
+                    a_text += ' &nbsp; ' + doc.activity_notes;
+                } else {
+                    a_text += ' &nbsp; No notes';
+                }
+                
                 a_tag.html(a_text);
                 li_tag.append(a_tag);
                 $('#activities_log ul.activities').append(li_tag);
             }
             $('#activities_log ul.activities').listview('refresh'); //jQm re-parse css/js
+        });
+    },
+    buildActiviesInProgressList: function(){
+        app.getActivitiesInProgress(function(acts){
+            rows = acts.rows;
+            for (r in rows){
+                doc = rows[r].value;
+                //console.log(doc);
+                app.addActivityRecordLi(doc.activity_name,doc.id,doc.start_time);
+            }
+            ct = rows.length;
+            $('#status_bar').html( '<b>'+ct + '</b> Activities in Progress');
         });
     },
     buildSightingsList: function(){
@@ -552,6 +556,57 @@ var app = {
         }
         
     },
+    getCompletedActivities: function(callback){
+        // pouch db map/reduce func: get objects of type 'activity' that have ended
+        map = function(doc) {
+            if(doc.objtype == 'activity' && doc.end_time) {
+             emit(doc.start_time, {activity_name:doc.activity_name,
+                            activity_id:doc.activity_id,
+                            activity_notes:doc.activity_notes,
+                            start_time:doc.start_time,
+                            end_time:doc.end_time,
+                            id:doc._id
+                        });
+            }
+        };
+        dBase.db.query({map: map}, {reduce: false, descending:true}, function(err, response) { 
+            //console.log(response);
+            callback(response);
+        });
+    },
+    getActivitiesInProgress: function(callback){
+        map = function(doc) {
+            if(doc.objtype == 'activity' && typeof doc.end_time == 'undefined') {
+             emit(doc.start_time, {activity_name:doc.activity_name,
+                            activity_id:doc.activity_id,
+                            activity_notes:doc.activity_notes,
+                            start_time:doc.start_time,
+                            id:doc._id
+                        });
+            }
+        };
+        dBase.db.query({map: map}, {reduce: false}, function(err, response) { 
+            //console.log(response);
+            callback(response);
+        });
+    },
+    getCompletedSightings: function(callback){
+        map = function(doc) {
+            if(doc.objtype == 'sighting' && doc.end_time) {
+             emit(doc.start_time, {sighting_id:doc.sighting_id,
+                            start_time:doc.start_time,
+                            end_time:doc.end_time,
+                            sighting_notes: doc.sighting_notes,
+                            phenotype_sightings: doc.phenotype_sightings,
+                            id:doc._id
+                            });
+            }
+        };
+        dBase.db.query({map: map}, {reduce: false, descending:true}, function(err, response) { 
+            //console.log(response);
+            callback(response);
+        });
+    },
     couchSync: function(){
         dBase.sync();
     },
@@ -609,9 +664,16 @@ x - activity record detail modal or page (like sightings)
 - maybe a top left corner drop-down to easily get to diff sections/ to show current activitiess/sightings
 - IMPORTANT: get lists of activities from outside DB and/or config file (like w/ sightings) 
             -- make a buildActivityList func similar to buildSightings...
-
+- ** dynamic HEADER!
 
 x add sightings to pouchDB (like with activities)
 x make update button work on sightings detail page. add close or cancel btn
+
+- for menus, check that the ui-active highlighting is working
+
+- should be a way to delete records
+- format phenotype list under current sighting
+- on confirm new activity, show notes field (?)
+
 
 */

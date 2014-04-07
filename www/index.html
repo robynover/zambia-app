@@ -12,17 +12,57 @@
     </head>
     <body>
         <div class="app">
+<!-- observer acvitity page -->
+            <section id="observer_activity" data-role="page">
+                <div data-role="header" id="main_header">
+                    <!--<div data-role="navbar" >
+                        <ul>
+                            <li><a href="#observer_activity" data-icon="clock">Observer Activity Log</a></li>
+                            <li><a href="#sightings" data-icon="eye">Sightings</a></li>
+                        </ul>     
+                    </div> 
+                    <div id="activity_status_bar" class="ui-bar ui-bar-b" ></div>-->
+                </div><!-- /header -->
+                <div role="main" class="ui-content">
+                    <div class = "activities_menu"></div> <!--template content goes here -->
+                    <div id="current_activity_records">
+                        <ul></ul>
+                    </div>
+                    <h1 id="activity_title">Choose Activity</h1>
+                    <!--<h3 id="activity_info">Start Activity</h3>-->
+                    <ul data-role="listview" class="activity_list" id="obs_activity_list" class="ui-listview"  data-icon="false">
+                        <li data-actid="1"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">Sleeping</a></li>
+                        <li data-actid="2"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">Searching for groups</a></li>
+                        <li data-actid="3"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">Driving</a></li>
+                        <li data-actid="4"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">Trapping</a></li> 
+                        
+                    </ul>  
+                    <li data-role="listview"><a href="#new_activity" id="new_activity_btn" data-rel="popup" data-role="button" data-icon="plus" >New Activity</a></li>      
+                    <div id="new_activity" data-role="popup">
+                        <label for="new_activity_field">New Activity</label>
+                        <input type="text" id="new_activity_field" />
+                        <a href="#sighting" data-rel="back" data-role="button" data-theme="a" id="new_act_btn" >Done</a>
+                    </div>
+                    <div id="activity_notes" data-role="popup">
+                        <label for="activity_notes_field">Activity Notes</label>
+                        <textarea cols="40" rows="6" id="activity_notes_field"></textarea>
+                        <a href="#" data-rel="back" data-role="button" data-theme="a" id="activity_notes_done_btn">Done</a>
+                    </div>
+
+                </div><!-- /main-->
+            </section>
+
             <!--sightings page -->
             <section id="sightings" data-role="page">
                 <!-- TODO: add header dynamically from other section -->
-                <div data-role="header" id="constantheader-wrapper">
-                    <div data-role="navbar" >
+                <div data-role="header">
+                   <!-- <div data-role="navbar" >
                         <ul>
-                             <li><a href="#sightings" data-icon="eye" class="ui-btn-active">Sightings</a></li>
-                             <li><a href="#observer_activity" data-icon="clock">Observer Activity Log</a></li>
+                            <li><a href="#observer_activity" data-icon="clock">Observer Activity Log</a></li>
+                            <li><a href="#sightings" data-icon="eye" class="ui-btn-active">Sightings</a></li>
                         </ul>     
-                    </div> <!-- /navbar -->
-                    <div id="sightings_status_bar" class="ui-bar ui-bar-b" >New Sighting</div>
+                    </div> --><!-- /navbar -->
+                    <!--<div id="sightings_status_bar" class="ui-bar ui-bar-b" >New Sighting</div>-->
                 </div><!-- /header -->
 
                 <div role="main" class="ui-content">
@@ -98,70 +138,14 @@
                 
                 <!-- <p>For debugging: <button id="reset">Reset</button></p> -->
             </section>
-            <!-- observer acvitity page -->
-            <section id="observer_activity" data-role="page">
-                <div data-role="header" id="constantheader-wrapper">
-                    <div data-role="navbar" >
-                        <ul>
-                            <li><a href="#sightings" data-icon="eye">Sightings</a></li>
-                            <li><a href="#observer_activity" data-icon="clock" class="ui-btn-active">Observer Activity Log</a></li>
-                            
-                        </ul>     
-                    </div> <!-- /navbar -->
-                    <div id="status_bar" class="ui-bar ui-bar-b" ></div>
-                </div><!-- /header -->
-                <div role="main" class="ui-content">
-                    <div data-role="controlgroup" data-type="horizontal">
-                        <a href="#" class="ui-btn ui-corner-all ui-btn-active">Current Activities</a>
-                        <a href="#activities_log" class="ui-btn ui-corner-all">Completed Activities</a>
-                        
-                    </div>
-                    <div id="current_activity_records">
-                        <ul></ul>
-                    </div>
-                    <h1 id="activity_title">Choose Activity</h1>
-                    <!--<h3 id="activity_info">Start Activity</h3>-->
-                    <ul data-role="listview" class="activity_list" id="obs_activity_list" class="ui-listview"  data-icon="false">
-                        <li data-actid="1"><a href="#">Sleeping</a></li>
-                        <li data-actid="2"><a href="#">Searching for groups</a></li>
-                        <li data-actid="3"><a href="#">Driving</a></li>
-                        <li data-actid="4"><a href="#">Trapping</a></li> 
-                        
-                    </ul>  
-                    <a href="#new_activity" data-rel="popup" data-role="button" data-icon="plus" >New Activity</a>      
-                    <div id="new_activity" data-role="popup">
-                        <label for="new_activity_field">New Activity</label>
-                        <input type="text" id="new_activity_field" />
-                        <a href="#sighting" data-rel="back" data-role="button" data-theme="a" id="new_act_btn" >Done</a>
-                    </div>
-                    <div id="activity_notes" data-role="popup">
-                        <label for="activity_notes_field">Activity Notes</label>
-                        <textarea cols="40" rows="6" id="activity_notes_field"></textarea>
-                        <a href="#" data-rel="back" data-role="button" data-theme="a" id="activity_notes_done_btn">Done</a>
-                    </div>
-
-                </div><!-- /main-->
-            </section>
+            
 
             <!-- activities log page -->
             <section id="activities_log" data-role="page">
-                <div data-role="header" id="constantheader-wrapper">
-                    <div data-role="navbar" >
-                        <ul>
-                            <li><a href="#sightings" data-icon="eye">Sightings</a></li>
-                            <li><a href="#observer_activity" data-icon="clock" class="ui-btn-active">Observer Activity Log</a></li>
-                            
-                        </ul>     
-                    </div> <!-- /navbar -->
-                    <div id="status_bar" class="ui-bar ui-bar-b" ></div>
-                </div><!-- /header -->
+                <div data-role="header"></div><!-- /header -->
                 <div role="main" class="ui-content">
-                    <div data-role="controlgroup" data-type="horizontal">
-                        <a href="#observer_activity" class="ui-btn ui-corner-all">Current Activities</a>
-                        <a href="#activities_log" class="ui-btn ui-corner-all  ui-btn-active">Completed Activities</a>
-                        
-                    </div>
-                    <!--<h4>Completed Activities</h4>-->
+                    <div class = "activities_menu"></div> <!--template content goes here -->
+                    <h4>Completed Activities</h4>
                     <ul class="activities" data-role="listview"></ul>
 
                     <!-- activity detail pop-up>-->
@@ -199,11 +183,27 @@
                 </main><!-- /main -->
             </section> <!-- /activities log -->
 
+            <!-- dynamic menu: activities section -->
+            <script id="activities_menu_tpl" type="text/x-handlebars-template">
+            <div data-role="controlgroup" data-type="horizontal">
+                <!--<a href="#new_activity" class="ui-btn ui-corner-all">New Activity</a>-->
+                <a href="#observer_activity" class="ui-btn ui-corner-all">Current Activities</a>
+                <a href="#activities_log" class="ui-btn ui-corner-all">Completed Activities</a>    
+            </div>
+            </script>
+
+            <!-- dynamic menu: main header -->
+            <script id="header_tpl" type="text/x-handlebars-template">
+            <div data-role="navbar" >
+                        <ul>
+                            <li><a href="#observer_activity" data-icon="clock">Observer Activity Log</a></li>
+                            <li><a href="#sightings" data-icon="eye">Sightings</a></li>
+                        </ul>     
+                    </div> 
+                    <div id="status_bar" class="ui-bar ui-bar-b" >&nbsp;</div>
+             </script>
+            </div> <!-- end .app -->
             
-            
-           
-            
-        </div> <!-- end .app -->
         <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/lib/jquery-1.8.2.min.js"></script>
         <script type="text/javascript" src="js/lib/jquery.mobile-1.4.2.min.js"></script>

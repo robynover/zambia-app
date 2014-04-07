@@ -63,8 +63,9 @@ a.activity_stop_btn{
 .activity_stop_btn.ui-mini.ui-btn-icon-left:after{
     background-color: rgb(212, 44, 44);
 }
-.activity_item{
+ul.activities .activity_item{
     text-align: left;
+    font-weight: normal;
 }
 /*#activity_notes{
     display: none;
@@ -99,11 +100,15 @@ a.activity_stop_btn{
 #new_activity{
     padding:2em;
 }
+#new_activity_btn{
+    background-color: #B7C4CE ; /*#7FBF7B #38c*/
+    text-shadow:none;
+}
 #msg{
     border: 1px dotted #999;
     background-color: #eee;
 }
-#sightings_status_bar{
+#sightings_status_bar,#activity_status_bar{
     font-weight: 400;
 }
 textarea{
@@ -121,4 +126,10 @@ textarea{
 }
 #activity_detail{
     padding: 1em;
+}
+div.ui-controlgroup-controls a{
+    font-weight: normal;
+}
+div[data-role="navbar"] a{
+    font-weight: normal;
 }
