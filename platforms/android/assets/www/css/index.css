@@ -1,3 +1,4 @@
+
 #timer_status{
     padding: 1em;
 }
@@ -8,7 +9,11 @@
     background-color: #EDBBC7;
 }
 .stopped{
-    background-color: #EDBBC7;
+    /*background-color: #EDBBC7;*/
+    border: 1px solid rgb(212, 44, 44);
+    border-left: none;
+    border-right: none;
+    background-color: #DCD6D6;
 }
 label{
     display:block;
@@ -18,23 +23,57 @@ label{
     border: 1px solid #333;
     padding: .5em;
 }
+.site_start{
+    border:1px solid red;
+    display: inline;
+    padding: 0.2em;
+}
+.sighting_notes,.activity_notes{
+    border:1px solid #c9c9c9;
+    padding: 1em;
+}
+li a.sighting_item{
+    font-weight: normal;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 2em;
+}
+#current_activity_records ul{
+    margin: 1em 0 0 0;
+    list-style-type: none;
+    background-color: #f6f6f6;
+    border-color: #ddd;
+    color: #333;
+}
 button{
     display:block;
 }
 select{
     display:block;
 }
-/*#activity_notes{
-    display: none;
-}*/
-/*
-#frequency_input{
-    width:3em;
+.time_input input{
+    width: 2.5em;
+    text-align: center;
 }
-#frequency_slider{
-    width: 75%;
-    display:block;
-}*/
+a.activity_stop_btn{
+    margin-left: 1em;
+}
+/* make the stop button red */
+.activity_stop_btn.ui-mini.ui-btn-icon-left:after{
+    background-color: rgb(212, 44, 44);
+}
+ul.activities .activity_item{
+    text-align: left;
+    font-weight: normal;
+}
+a.activity_edit_text{
+    border:none !important;
+}
+a:hover.activity_edit_text{
+    background-color: inherit !important;
+}
+
 #new_phenotype{
     display:none;
 }
@@ -49,6 +88,7 @@ select{
 }
 #add_pheno_btn{
     display: none;
+    font-weight: 400;
 }
 #activity_records{
     display: none;
@@ -56,11 +96,39 @@ select{
 #new_activity{
     padding:2em;
 }
+#new_activity_btn{
+    background-color: #D2DED4; /* #B7C4CE #7FBF7B #38c*/
+    text-shadow:none;
+    text-align: left;
+    margin-top: 1em;
+}
 #msg{
     border: 1px dotted #999;
     background-color: #eee;
 }
-textarea{
-    width:100%;
+.status_bar,.status_bar.ui-bar-b{
+    font-weight: normal;
+    text-shadow:none;
 }
-
+textarea{
+    /*width:100%;
+    height:25%;*/
+}
+#obs_activity_list{
+    margin-bottom: 0;
+}
+.custom_list_item{
+    background-color: #f6f6f6;
+    border-color: #ddd;
+    color: #333;
+    text-shadow: 0 1px 0 #f3f3f3;
+}
+#activity_detail{
+    padding: 1em;
+}
+div.ui-controlgroup-controls a{
+    font-weight: normal;
+}
+div[data-role="navbar"] a{
+    font-weight: normal;
+}

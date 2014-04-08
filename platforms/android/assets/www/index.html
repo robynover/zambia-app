@@ -7,123 +7,210 @@
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
         <link rel="stylesheet" type="text/css" href="css/index.css" />
         <link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.2.min.css" />
+        <!--<link rel="stylesheet" type="text/css" href="css/jqm-datebox-1.1.0.css" />-->
         <title>Ethoinformatics</title>
     </head>
     <body>
         <div class="app">
-            <!-- sightings page -->
-            <section id="sightings" data-role="page">
-                <!-- TODO: add header dynamically from other section -->
-                <div data-role="header" id="constantheader-wrapper">
-                    <div data-role="navbar" >
-                        <ul>
-                             <li><a href="#sightings" data-icon="eye" class="ui-btn-active">Sightings</a></li>
-                             <li><a href="#observer_activity" data-icon="clock">Observer Activity Log</a></li>
-                        </ul>     
-                    </div> <!-- /navbar -->
-                    <div id="sightings_status_bar" class="ui-bar ui-bar-b" ></div>
+<!-- observer acvitity page -->
+            <section id="activity" data-role="page" data-title="Observer Activity">
+                <div data-role="header" id="main_header">
+                   
                 </div><!-- /header -->
-                <h1 class="sighting_title">New Sighting</h1>
-                
-                <div id="sighting_notes_wrap">
-                    <label for="sighting_notes">Sighting Notes</label>
-                    <textarea cols="40" rows="6" name="sighting_notes" id="sighting_notes"></textarea>
-                    <!--<a href="#" data-rel="back" data-role="button" data-theme="a" >Done</a>-->
-                </div> <!--end sighting_notes_wrap -->
-                <button id="sighting_time" data-inline="true">Start Sighting</button>
-                <!--<button id="save_sighting_notes" data-inline="true">Save Notes</button>-->
-                <a href="#pheno_obs" id="add_pheno_btn" data-rel="popup"
-                data-role="button" data-icon="plus" data-theme="b" data-inline="true">Add Phenotypes</a>
+                <div role="main" class="ui-content">
+                    <div class = "activities_menu"></div> <!--template content goes here -->
+                    <div id="current_activity_records">
+                        <ul></ul>
+                    </div>
+                    <h1 id="activity_title">Choose Activity</h1>
+                    <!--<h3 id="activity_info">Start Activity</h3>-->
+                    <ul data-role="listview" class="activity_list" id="obs_activity_list" class="ui-listview"  data-icon="false">
+                        <!--<li data-actid="1"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">Sleeping</a></li>
+                        <li data-actid="2"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">Searching for groups</a></li>
+                        <li data-actid="3"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">Driving</a></li>
+                        <li data-actid="4"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">Trapping</a></li> -->
+                        
+                    </ul>  
+                    <li data-role="listview"><a href="#new_activity" id="new_activity_btn" data-rel="popup" data-role="button" data-icon="plus">New Activity</a></li>      
+                    <div id="new_activity" data-role="popup">
+                        <label for="new_activity_field">New Activity</label>
+                        <input type="text" id="new_activity_field" />
+                        <a href="#sighting" data-rel="back" data-role="button" data-theme="a" id="new_act_btn" >Done</a>
+                    </div>
+                    <div id="activity_notes" data-role="popup">
+                        <label for="activity_notes_field">Activity Notes</label>
+                        <textarea cols="40" rows="6" id="activity_notes_field"></textarea>
+                        <a href="#" data-rel="back" data-role="button" data-theme="a" id="activity_notes_done_btn">Done</a>
+                    </div>
 
-                <div id= "pheno_obs" data-role="popup">
-                    <h2>Phenotype observations</h2>
-                    <!--<button id="new_pheno_obs">New</button>-->
-                    <label for="phenotype_select">Phenotype</label>
-                    <select id="phenotype_select"></select>
-                    <input type="text" id="new_phenotype" />
-                    <label for="frequency_slider">Frequency</label>
-                    <input id="frequency_slider" type="range" min="0" max="100" value="50" />
-                    <!--<input id="frequency_input" type="number" maxlength="3" size="3" value="50"/>-->
-                    
-                    <br/>
-                    <label for="pheno_notes">Phenotype Notes</label>
-                    <textarea cols="40" rows="6" name="pheno_notes" id="pheno_notes"></textarea>
-                    <a id="save_pheno_obs" data-role="button" data-rel="back" data-inline="true">Add to Sighting</a>
-                    
-                </div><!-- end pheno_obs -->
+                </div><!-- /main-->
+            </section>
+
+            <!--sightings page -->
+            <section id="sightings" data-role="page" data-title="Sightings">
+                <!-- TODO: add header dynamically from other section -->
+                <div data-role="header"></div><!-- /header -->
+
+                <div role="main" class="ui-content">
+                   <div class="sightings_menu"></div> <!--template content goes here -->
+                    <div id="sighting_notes_wrap">
+                        <label for="sighting_notes">Sighting Notes</label>
+                        <textarea cols="40" rows="6" name="sighting_notes" id="sighting_notes"></textarea>
+                        <!--<a href="#" data-rel="back" data-role="button" data-theme="a" >Done</a>-->
+                    </div> <!--end sighting_notes_wrap -->
+                    <button id="sighting_time" data-inline="true" data-icon="plus">Start Sighting</button>
+                    <!--<button id="save_sighting_notes" data-inline="true">Save Notes</button>-->
+                    <a href="#pheno_obs" id="add_pheno_btn" data-rel="popup" 
+                    data-role="button" data-icon="plus" data-theme="b" data-inline="true">Add Phenotype</a>
+
+                    <div id= "pheno_obs" data-role="popup">
+                        <h2>Phenotype observations</h2>
+                        <!--<button id="new_pheno_obs">New</button>-->
+                        <label for="phenotype_select">Phenotype</label>
+                        <select id="phenotype_select"></select>
+                        <input type="text" id="new_phenotype" />
+                        <label for="frequency_slider">Frequency</label>
+                        <input id="frequency_slider" type="range" min="0" max="100" value="50" />
+                        <!--<input id="frequency_input" type="number" maxlength="3" size="3" value="50"/>-->
+                        
+                        <br/>
+
+                        <label for="pheno_notes">Phenotype Notes</label>
+                        <textarea cols="40" rows="6" name="pheno_notes" id="pheno_notes"></textarea>
+                        <a id="save_pheno_obs" data-role="button" data-rel="back" data-inline="true">Add to Sighting</a>
+                        
+                    </div><!-- end pheno_obs -->
+
+                    <div id="pheno_obs_records">
+                        <h4>Phenotypes</h4>
+                        <ul data-role="listview"></ul>
+                    </div>
+                    <!--<div id="sightings_log">
+                        <h4>Sightings Log</h4>
+                        <ul class="sightings" data-role="listview"></ul>
+                    </div>-->
                 
-                <div id="pheno_obs_records">
-                    <h4>Phenotypes</h4>
-                    <ul></ul>
-                </div>
+                    <!-- sighting detail popup -->
+                    <div id="sighting_detail" data-role="popup"></div> <!--tpl content goes here -->
+                    <!-- Handlebars.js template: Sighting Detail page -->
+                    <script id="sighting_detail_tpl" type="text/x-handlebars-template">
+                        <a href="#" data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+
+                        <h1>Sighting Detail</h1>
+                        <p><b>Date:</b> {{day}}<br/>
+                        <b>DB id:</b> {{dbid}}</p>
+
+                        <h4>Start Time</h4>
+                        <p><a href="#" class="edit_sighting_start ui-btn ui-nodisc-icon ui-btn-b ui-corner-all ui-icon-edit ui-btn-icon-notext ui-btn-inline">edit</a> 
+                        {{start_time}}</p>
+                        <div id="sighting_start_input" class="time_input"> 
+                        <input id="hr_start" type="number" value="{{hr_start}}"> : <input id="min_start" type="number" value="{{min_start}}">
+                        </div>
+
+                        <h4>End Time</h4>
+                        <p><a href="#" class="edit_sighting_end ui-btn ui-nodisc-icon ui-btn-b ui-corner-all ui-icon-edit ui-btn-icon-notext ui-btn-inline">edit</a> 
+                        {{end_time}}</p>
+                        <div id="sighting_end_input" class="time_input"> 
+                        <input id="hr_end" type="number" value="{{hr_end}}"> : <input id="min_end" type="number" value="{{min_end}}"></div>
+                        <p><br/></p>
+
+                        <h4>Notes</h4> (tap to edit)
+                        <p contenteditable="true" class="sighting_notes">{{sighting_notes}}</p>
+
+                        <a href="#" id="update_sighting_btn" class="ui-btn ui-corner-all ui-icon-check ui-btn-inline ui-btn-icon-left">Update</a>
+                    </script> <!--end template-->
+            
+                </div> <!-- /main -->
                 
                 <!-- <p>For debugging: <button id="reset">Reset</button></p> -->
             </section>
-            <!-- observer acvitity page -->
-            <section id="observer_activity" data-role="page">
-                <div data-role="header" id="constantheader-wrapper">
-                    <div data-role="navbar" >
-                        <ul>
-                            <li><a href="#sightings" data-icon="eye">Sightings</a></li>
-                            <li><a href="#observer_activity" data-icon="clock" class="ui-btn-active">Observer Activity Log</a></li>
-                            
-                        </ul>     
-                    </div> <!-- /navbar -->
-                    <div id="status_bar" class="ui-bar ui-bar-b" ></div>
-                </div><!-- /header -->
-                <div data-role="controlgroup" data-type="horizontal">
-                    <a href="#" class="ui-btn ui-corner-all ui-btn-active">Current Activities</a>
-                    <a href="#activities_log" class="ui-btn ui-corner-all">Completed Activities</a>
-                    
-                </div>
-                <div id="activity_records">
-                    <!--<h4>Current Activities</h4>-->
-                    <ul></ul>
-                </div>
-                <h1 id="activity_title">Choose Activity</h1>
-                <!--<h3 id="activity_info">Start Activity</h3>-->
-                <ul data-role="listview" class="activity_list" id="obs_activity_list" class="ui-listview"  data-icon="false">
-                    <li data-actid="1"><a href="#">Sleeping</a></li>
-                    <li data-actid="2"><a href="#">Searching for groups</a></li>
-                    <li data-actid="3"><a href="#">Driving</a></li>
-                    <li data-actid="4"><a href="#">Trapping</a></li> 
-                    
-                </ul>  
-                <a href="#new_activity" data-rel="popup" data-role="button" data-icon="plus" data-inline="true">New Activity</a>      
-                <div id="new_activity" data-role="popup">
-                    <label for="new_activity_field">New Activity</label>
-                    <input type="text" id="new_activity_field" />
-                    <a href="#sighting" data-rel="back" data-role="button" data-theme="a" id="new_act_btn" >Done</a>
-                </div>
-                <div id="activity_notes" data-role="popup">
-                    <label for="activity_notes_field">Activity Notes</label>
-                    <textarea cols="40" rows="6" id="activity_notes_field"></textarea>
-                    <a href="#" data-rel="back" data-role="button" data-theme="a" id="activity_notes_done_btn">Done</a>
-                </div>
+
+            <!-- sightings log page -->
+            <section id="sightings_log" data-role="page">
+                <div data-role="header"></div><!-- /header -->
+                <div role="main" class="ui-content">
+                    <div class="sightings_menu"></div> <!--template content goes here -->
+                    <h4>Sightings Log</h4>
+                    <ul class="sightings" data-role="listview"></ul>
+                </div> <!-- / main-->
             </section>
+            <!-- /sightings log -->
+
             <!-- activities log page -->
-            <section id="activities_log" data-role="page">
-                <div data-role="header" id="constantheader-wrapper">
-                    <div data-role="navbar" >
-                        <ul>
-                            <li><a href="#sightings" data-icon="eye">Sightings</a></li>
-                            <li><a href="#observer_activity" data-icon="clock" class="ui-btn-active">Observer Activity Log</a></li>
-                            
-                        </ul>     
-                    </div> <!-- /navbar -->
-                    <div id="status_bar" class="ui-bar ui-bar-b" ></div>
-                </div><!-- /header -->
-                <div data-role="controlgroup" data-type="horizontal">
-                    <a href="#observer_activity" class="ui-btn ui-corner-all">Current Activities</a>
-                    <a href="#activities_log" class="ui-btn ui-corner-all  ui-btn-active">Completed Activities</a>
-                    
-                </div>
-                <!--<h4>Completed Activities</h4>-->
-                <ul class="activities"></ul>
-                <hr/>
-                <p><br/>For debugging: <a class="ui-btn ui-mini ui-btn-inline" id="reset">Reset DB</a></p>
-            </section>
-        </div> <!-- end .app -->
+            <section id="activity_log" data-role="page">
+                <div data-role="header"></div><!-- /header -->
+                <div role="main" class="ui-content">
+                    <div class = "activities_menu"></div> <!--template content goes here -->
+                    <h4>Completed Activities</h4>
+                    <ul class="activities" data-role="listview"></ul>
+
+                    <!-- activity detail pop-up>-->
+                    <div id="activity_detail" data-role="popup"></div>
+                    <!-- /activty-detail -->
+                    <!-- Handlebars.js template: Activity Detail page -->
+                    <script id="activity_detail_tpl" type="text/x-handlebars-template">
+                        <a href="#" data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+                        <h1>Activity Detail</h1>
+
+                        <p><b>{{activity_name}}</b> on {{day}}<br/>
+                        <b>DB id:</b> {{dbid}}</p>
+
+                        <h4>Start Time</h4>
+                        <p><a href="#" class="edit_activity_start ui-btn ui-nodisc-icon ui-btn-b ui-corner-all ui-icon-edit ui-btn-icon-notext ui-btn-inline">edit</a> 
+                        {{start_time}}</p>
+                        <div id="activity_start_input" class="time_input"> 
+                        <input id="hr_start" type="number" value="{{hr_start}}"> : <input id="min_start" type="number" value="{{min_start}}">
+                        </div>
+
+                        <h4>End Time</h4>
+                        <p><a href="#" class="edit_activity_end ui-btn ui-nodisc-icon ui-btn-b ui-corner-all ui-icon-edit ui-btn-icon-notext ui-btn-inline">edit</a> 
+                        {{end_time}}</p>
+                        <div id="activity_end_input" class="time_input"> 
+                        <input id="hr_end" type="number" value="{{hr_end}}"> : <input id="min_end" type="number" value="{{min_end}}"></div>
+                        <p><br/></p>
+                        <h4>Notes</h4> (tap to edit)
+                        <p contenteditable="true" class="activity_notes">{{activity_notes}}</p>
+
+                        <a href="#" id="update_activity_btn" class="ui-btn ui-corner-all ui-icon-check ui-btn-inline ui-btn-icon-left">Update</a>
+                    </script>
+
+                    <hr/>
+                    <p><br/>For debugging: <a class="ui-btn ui-mini ui-btn-inline" id="reset">Reset DB</a></p>
+                </main><!-- /main -->
+            </section> <!-- /activities log -->
+
+
+            <!-- dynamic menu: main header -->
+            <script id="header_tpl" type="text/x-handlebars-template">
+                <div data-role="navbar" class="main_nav">
+                    <ul>
+                        <li><a href="#activity" data-icon="clock">Observer Activity Log</a></li>
+                        <li><a href="#sightings" data-icon="eye">Sightings</a></li>
+                    </ul>     
+                </div> 
+                <div class="status_bar ui-bar ui-bar-b" >&nbsp;</div>
+             </script> <!--/main header tpl -->
+
+            <!-- dynamic menu: activities section -->
+            <script id="activities_menu_tpl" type="text/x-handlebars-template">
+            <div data-role="controlgroup" data-type="horizontal">
+                <!--<a href="#new_activity" class="ui-btn ui-corner-all">New Activity</a>-->
+                <a href="#activity" class="ui-btn ui-corner-all {{current}}">Current Activities</a>
+                <a href="#activity_log" class="ui-btn ui-corner-all {{completed}}">Completed Activities</a>    
+            </div>
+            </script><!-- /activities menu tpl -->
+
+            <!-- dynamic menu: sightings section -->
+            <script id="sightings_menu_tpl" type="text/x-handlebars-template">
+            <div data-role="controlgroup" data-type="horizontal">
+                <a href="#sightings" data-role="button" class="ui-btn ui-corner-all {{current}}">Current Sighting</a>
+                <a href="#sightings_log" data-role="button" class="ui-btn ui-corner-all {{completed}}">Sightings Log</a>    
+            </div>
+            </script><!-- /activities menu tpl -->
+
+            
+            </div> <!-- end .app -->
+            
         <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/lib/jquery-1.8.2.min.js"></script>
         <script type="text/javascript" src="js/lib/jquery.mobile-1.4.2.min.js"></script>
@@ -132,6 +219,9 @@
         <!-- new version of pouchdb! -->
         <script type="text/javascript" src="js/lib/pouchdb-2.1.0.min.js"></script>
         <script type="text/javascript" src="js/lib/moment.min.js"> </script>
+        <script type="text/javascript" src="js/lib/handlebars.js"> </script>
+        <!--<script type="text/javascript" src="js/lib/jqm-datebox/jqm-datebox-1.1.0.core.js"> </script>
+        <script type="text/javascript" src="js/lib/jqm-datebox/jqm-datebox-1.1.0.mode.datebox.js"> </script>-->
         <script type="text/javascript" src="js/db.js"></script>
         <script type="text/javascript" src="js/studyData.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
@@ -140,5 +230,6 @@
             app.initialize();
         </script>
 
+        
     </body>
 </html>
