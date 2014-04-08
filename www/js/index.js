@@ -1,11 +1,11 @@
 var app = {
     // properties
-    obs_activity_clock_running: false,
     current_sighting: {},
     sighting_currently_editing: {},
     activity_currently_editing: {},
     sighting_notes: '',
     current_obs_activities: [],
+    all_activities:[],
     timestamp_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
     time_only_format: "HH:mm",
     date_only_format: "YYYY-MM-DD",
@@ -16,15 +16,16 @@ var app = {
    
     // Application Constructor
     initialize: function() {
+        this.initData(); 
         this.bindEvents();
-        this.onDeviceReady(); //uncomment for browser debugging
-        this.initData();     
+        this.onDeviceReady(); //uncomment for browser debugging        
     },
     // set up the starting data -- from db or config file
     initData: function(){
         app.all_phenotypes = studyData.all_phenotypes; //initial set of phenotypes
         app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for each sighting 
         app.current_sighting.phenotype_sightings = []; // set datatype of property to Array
+        app.all_activities = studyData.all_activities;
     },
     // Bind Event Listeners
     bindEvents: function() {
@@ -77,21 +78,49 @@ var app = {
 
     },
     setUpUI: function(){
-        //compile templates
-        app.sighting_detail_tpl = Handlebars.compile($("#sighting_detail_tpl").html());
-        app.activity_detail_tpl = Handlebars.compile($("#activity_detail_tpl").html());
-        _activites_menu_tpl   = Handlebars.compile($('#activities_menu_tpl').html()); //local var bc content is not dynamic
-        $('.activities_menu').html(_activites_menu_tpl());
-        // attach headers w/ template
+        /* -- templates -- */
+        // attach headers template
         _header_tpl = Handlebars.compile($('#header_tpl').html());
         $('[data-role="header"]').html(_header_tpl());
+        // menus
+        _activites_menu_tpl = Handlebars.compile($('#activities_menu_tpl').html()); //local var bc content is not dynamic
+        // could/should be dynamic in future. building menus on 2 pages separately to set ui-active
+        $('#activity .activities_menu').html(_activites_menu_tpl({current:'ui-btn-active',completed:''}));
+        $('#activity_log .activities_menu').html(_activites_menu_tpl({current:'',completed:'ui-btn-active'}));
 
-        app.buildActiviesInProgressList();
+        _sightings_menu_tpl = Handlebars.compile($('#sightings_menu_tpl').html());
+        $('#sightings .sightings_menu').html(_sightings_menu_tpl({current:'ui-btn-active',completed:''}));
+        $('#sightings_log .sightings_menu').html(_sightings_menu_tpl({current:'',completed:'ui-btn-active'}));
 
+        //compile templates for later use with dynamic data
+        app.sighting_detail_tpl = Handlebars.compile($("#sighting_detail_tpl").html());
+        app.activity_detail_tpl = Handlebars.compile($("#activity_detail_tpl").html());
         
+        // initial list of activity choices
+        app.buildAllActivitiesList();
+
+        // show in-progress activities (from db)
+        app.buildActiviesInProgressList();     
     },
     
     // ---------- Listeners -------- //
+    pageChangeListener: function(){
+        // indicate current page in main nav bar
+        current_pg = ($( ".ui-page-active").attr('id'));
+        //console.log($( ".main_nav ul li a" ));
+        $('.main_nav ul li a').removeClass("ui-btn-active");
+        $( '#'+current_pg+' .main_nav ul li a' ).each(function() {
+            if ($(this).attr('href') == '#'+current_pg || '#'+current_pg.substring(0,current_pg.indexOf('_')) == $(this).attr('href')){
+                // add class
+                $(this).addClass("ui-btn-active");
+            } 
+        }); // TODO: account for sub-pages
+
+        if (location.hash == '#activity_log'){
+            app.buildCompletedActivitiesList();
+        }
+
+    },
     obsActivityListener: function(){
         console.log('obsActivityListener');
         activity_name = $('#new_activity_field').val();
@@ -134,7 +163,7 @@ var app = {
                 // UI
                 app.addActivityRecordLi(actObj.activity_name,actObj._id,actObj.start_time);
                 $('#current_activity_records').show();
-                $('#status_bar').html('Observer Activity Started');
+                $('.status_bar').html('Observer Activity Started');
             });
             //console.log(actObj);   
         }
@@ -160,7 +189,7 @@ var app = {
         dBase.find(id,function(doc){
             doc.activity_notes = notes;
             app.saveActivity(doc);
-            $('#status_bar').html('Observer Activity Notes Updated');
+            $('.status_bar').html('Observer Activity Notes Updated');
         });
     },
     
@@ -177,17 +206,11 @@ var app = {
                     el.append(' Stopped at <b>'+ moment().format(app.time_only_format) + '</b>');
                     el.addClass('stopped');
                     el.fadeOut(3000,function(){this_btn.remove()});
-                    $('#status_bar').html('Observer Activity Stopped');
+                    $('.status_bar').html('Observer Activity Stopped');
                 });    
             }
         });     
     },
-    pageChangeListener: function(){
-        if (location.hash == '#activities_log'){
-            app.buildCompletedActivitiesList();
-        }
-    },
-    
     savePhenotypeToSighting: function(){
         /* phenotype object structure
         { 
@@ -220,6 +243,7 @@ var app = {
         // add to the display list of stored records
         $('#pheno_obs_records').show();
         $('#pheno_obs_records ul').append('<li>' + ps.phenotype_name + ' ' + ps.frequency+'</li>'); 
+        $('#pheno_obs_records ul').listview('refresh'); // for jQm formatting
 
         // clear/reset all the values in the phenotype form
         $('#frequency_slider').val(50); //slider input element
@@ -318,7 +342,7 @@ var app = {
             $('#sighting_notes_wrap').slideUp();
             $('#sighting_notes').val('');
             $('#pheno_obs_records ul').html('');
-            $('#status_bar').html('Sighting saved.');
+            $('.status_bar').html('Sighting saved.');
           
         } else { //START time
             app.current_sighting.start_time = moment().format(app.timestamp_format);//Date.now();
@@ -333,14 +357,14 @@ var app = {
 
             // UI
             // status bar 
-            $('#status_bar').html('Sighting in Progress');
+            $('.status_bar').html('Sighting in Progress');
             $(this).html('End Sighting');
             $(this).attr('data-icon','minus');
             $(this).addClass('ui-icon-minus');
             $(this).removeClass('ui-icon-plus');
             
             // show sighting started
-            //$('#sighting_status').html('Sighting started at <strong>' + moment().format(app.time_only_format) + '</strong>');
+            //$('.status_bar').html('Sighting started at <strong>' + moment().format(app.time_only_format) + '</strong>');
             //show sighting notes button
             $('#sighting_notes_wrap').show();
             // show add phenotypes button
@@ -354,8 +378,7 @@ var app = {
             // hide records div -- no records yet
             //$('#pheno_obs_records').hide();
         } 
-    },
-    
+    },  
     showActivityNotes: function(){
         record_id = $(this).attr('data-recordid');
         dBase.find(record_id,function(doc){
@@ -365,7 +388,6 @@ var app = {
         $('#activity_notes').show();
     },
     addActivityNotes: function(){
-        // 'this' is the "Done" button
         //console.log($('#activity_notes').attr('data-recordid'));
         id = $('#activity_notes').attr('data-recordid');
         notes = $('#activity_notes_field').val();
@@ -392,9 +414,13 @@ var app = {
         // to do: add listener to show an input box when "New" is chosen
     },
     addActivityRecordLi: function(activity_name,id,start_time){
-        li_text = activity_name + ', started at <strong>' + moment(start_time).format(app.time_only_format) + '</strong>';
-        edit_btn = '<a href="#activity_notes" data-rel="popup" class="activity_edit_btn ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext ui-corner-all"';
-        edit_btn += ' data-recordid="'+id+'">Edit</a>';
+        li_text = '<a href="#activity_notes" data-rel="popup" class="activity_edit_btn activity_edit_text ui-btn ui-btn-inline" ';
+        li_text += ' data-recordid="'+id+'">';
+        li_text += activity_name + ', started at <strong>' + moment(start_time).format(app.time_only_format) + '</strong></a>';
+        edit_link = '<a href="#activity_notes" data-rel="popup" class="activity_edit_btn  ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext ui-corner-all" ';
+        edit_link += ' data-recordid="'+id+'">';
+        edit_btn = edit_link + 'Edit</a>';
+
         stop_btn = ' <a href="#" class="activity_stop_btn ui-btn ui-btn-inline ui-btn-icon-left ui-corner-all ui-icon-minus ui-mini" data-recordid="'+id+'">Stop</a>';
         $('#current_activity_records ul').append('<li>' + edit_btn + li_text + stop_btn + '</li>'); 
         //$('#current_activity_records ul').append('<li><a href="#" class="ui-icon-edit">'+ li_text +'</a><a href="#" class="ui-icon-edit">stop</a></li>'); 
@@ -402,7 +428,7 @@ var app = {
     buildCompletedActivitiesList: function(){
         //acts = app.getCompletedActivities();
         app.getCompletedActivities(function(acts){
-            $('#activities_log ul.activities').html('');
+            $('#activity_log ul.activities').html('');
             //edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext activity_edit_btn">Edit</a>';
             rows = acts.rows;
             for (r in rows){
@@ -423,9 +449,9 @@ var app = {
                 
                 a_tag.html(a_text);
                 li_tag.append(a_tag);
-                $('#activities_log ul.activities').append(li_tag);
+                $('#activity_log ul.activities').append(li_tag);
             }
-            $('#activities_log ul.activities').listview('refresh'); //jQm re-parse css/js
+            $('#activity_log ul.activities').listview('refresh'); //jQm re-parse css/js
         });
     },
     buildActiviesInProgressList: function(){
@@ -437,8 +463,17 @@ var app = {
                 app.addActivityRecordLi(doc.activity_name,doc.id,doc.start_time);
             }
             ct = rows.length;
-            $('#status_bar').html( '<b>'+ct + '</b> Activities in Progress');
+            $('.status_bar').html( '<b>'+ct + '</b> Activities in Progress');
         });
+    },
+    buildAllActivitiesList:function(){
+        // <li data-actid="1"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">Sleeping</a></li>
+        for (a in app.all_activities){
+            li = '<li data-actid="'+ a + '">';
+            li += '<a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">';
+            li += app.all_activities[a] + '</a></li>';
+            $('#obs_activity_list').append(li);
+        }
     },
     buildSightingsList: function(){
         app.getCompletedSightings(function(sightings){
@@ -523,6 +558,7 @@ var app = {
             });
         });
     },
+    
 
     // Database
     saveActivity: function(activityObj,callback){
@@ -657,23 +693,34 @@ var app = {
 
 /*
 TODO: 
-x- list of activities should be clickable, so you can stop/edit activity
-    still TODO:  update button action in activity detail popup 
+x- list of activities should be clickable, so you can stop/edit activity    
+x- still TODO:  "update" button action in activity detail popup 
 x - activity record detail modal or page (like sightings)
+
+x - format phenotype list under current sighting
+- make phenotypes of sighting editable
+- show ongoing sightings from db at start 
+- make phenotypes editable in "sighting log" section
+
+- !data! IMPORTANT: get lists of activities from outside DB and/or config file (like w/ sightings) 
+            -- make a buildActivityList func similar to buildSightings...
+
 - show current activities on top bar or in pull-down, modal, etc
 - maybe a top left corner drop-down to easily get to diff sections/ to show current activitiess/sightings
-- IMPORTANT: get lists of activities from outside DB and/or config file (like w/ sightings) 
-            -- make a buildActivityList func similar to buildSightings...
-- ** dynamic HEADER!
+
+x - ** dynamic HEADER!
 
 x add sightings to pouchDB (like with activities)
 x make update button work on sightings detail page. add close or cancel btn
 
-- for menus, check that the ui-active highlighting is working
+x for menus, check that the ui-active highlighting is working
 
 - should be a way to delete records
-- format phenotype list under current sighting
+
 - on confirm new activity, show notes field (?)
 
+** add census entry to sighting
+
+- separate data by day ... + day summary/history page/s? 
 
 */

@@ -67,17 +67,13 @@ ul.activities .activity_item{
     text-align: left;
     font-weight: normal;
 }
-/*#activity_notes{
-    display: none;
-}*/
-/*
-#frequency_input{
-    width:3em;
+a.activity_edit_text{
+    border:none !important;
 }
-#frequency_slider{
-    width: 75%;
-    display:block;
-}*/
+a:hover.activity_edit_text{
+    background-color: inherit !important;
+}
+
 #new_phenotype{
     display:none;
 }
@@ -101,15 +97,18 @@ ul.activities .activity_item{
     padding:2em;
 }
 #new_activity_btn{
-    background-color: #B7C4CE ; /*#7FBF7B #38c*/
+    background-color: #D2DED4; /* #B7C4CE #7FBF7B #38c*/
     text-shadow:none;
+    text-align: left;
+    margin-top: 1em;
 }
 #msg{
     border: 1px dotted #999;
     background-color: #eee;
 }
-#sightings_status_bar,#activity_status_bar{
-    font-weight: 400;
+.status_bar,.status_bar.ui-bar-b{
+    font-weight: normal;
+    text-shadow:none;
 }
 textarea{
     /*width:100%;
