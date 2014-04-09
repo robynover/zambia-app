@@ -90,6 +90,20 @@
                         <ul class="sightings" data-role="listview"></ul>
                     </div>-->
                 
+                    
+            
+                </div> <!-- /main -->
+                
+                <!-- <p>For debugging: <button id="reset">Reset</button></p> -->
+            </section>
+
+            <!-- sightings log page -->
+            <section id="sightings_log" data-role="page">
+                <div data-role="header"></div><!-- /header -->
+                <div role="main" class="ui-content">
+                    <div class="sightings_menu"></div> <!--template content goes here -->
+                    <h4>Sightings Log</h4>
+                    <ul class="sightings" data-role="listview"></ul>
                     <!-- sighting detail popup -->
                     <div id="sighting_detail" data-role="popup"></div> <!--tpl content goes here -->
                     <!-- Handlebars.js template: Sighting Detail page -->
@@ -119,19 +133,6 @@
 
                         <a href="#" id="update_sighting_btn" class="ui-btn ui-corner-all ui-icon-check ui-btn-inline ui-btn-icon-left">Update</a>
                     </script> <!--end template-->
-            
-                </div> <!-- /main -->
-                
-                <!-- <p>For debugging: <button id="reset">Reset</button></p> -->
-            </section>
-
-            <!-- sightings log page -->
-            <section id="sightings_log" data-role="page">
-                <div data-role="header"></div><!-- /header -->
-                <div role="main" class="ui-content">
-                    <div class="sightings_menu"></div> <!--template content goes here -->
-                    <h4>Sightings Log</h4>
-                    <ul class="sightings" data-role="listview"></ul>
                 </div> <!-- / main-->
             </section>
             <!-- /sightings log -->
@@ -162,7 +163,7 @@
                         <input id="hr_start" type="number" value="{{hr_start}}"> : <input id="min_start" type="number" value="{{min_start}}">
                         </div>
                         <input type="hidden" id="oa_day_only_date" value="{{day}}" />
-                        
+
 
                         <h4>End Time</h4>
                         <p><a href="#" class="edit_activity_end ui-btn ui-nodisc-icon ui-btn-b ui-corner-all ui-icon-edit ui-btn-icon-notext ui-btn-inline">edit</a> 

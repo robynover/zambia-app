@@ -132,3 +132,6 @@ div.ui-controlgroup-controls a{
 div[data-role="navbar"] a{
     font-weight: normal;
 }
+div[data-role="popup"]{
+    background-color: #fff;
+}

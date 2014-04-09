@@ -19,7 +19,13 @@ var app = {
         this.setUpUI();  
         this.bindEvents();
 
-        //this.onDeviceReady(); //uncomment for browser debugging        
+        //this.onDeviceReady(); //uncomment for browser debugging 
+        if (navigator.userAgent.match(/(Mozilla)/)){ //in browser, we'll assume (for debugging)
+            console.log('browser');
+            $(document).ready(this.onDeviceReady());                 
+        } else {
+            document.addEventListener('deviceready', this.onDeviceReady, false);
+        }       
     },
     // set up the starting data -- from db or config file
     initData: function(){
@@ -68,6 +74,9 @@ var app = {
      
         // debug
          $('#reset').bind('click',this.resetDB);
+
+         //geolocation
+         //var watchID = navigator.geolocation.watchPosition(onSuccess, onError, { frequency: 3000 });
     },
     // deviceready Event Handler
     onDeviceReady: function() {
@@ -126,6 +135,15 @@ var app = {
         if (location.hash == '#activity_log'){
             app.buildCompletedActivitiesList();
         }
+        if (location.hash == '#sightings_log'){
+            //$('[data-role="content"]').trigger('create');
+           // $('#sighting_detail').trigger('pagecreate');
+            console.log('hash sightings_log');
+            //$( "#sighting_detail" ).popup();
+        }
+
+        // refresh jQm UI elements
+        //$('[data-role="listview"]').listview();
 
     },
     /* listener for creating a new record of an existing activity type */
@@ -526,6 +544,7 @@ var app = {
         });
     },
     buildSightingDetailPg: function(){
+        console.log('s detail');
         db_id = $(this).attr('data-dbid');
         dBase.find(db_id,function(doc){
             // store this object so it can be updated on submit listener
@@ -544,14 +563,22 @@ var app = {
             };
 
             content = app.sighting_detail_tpl(context_obj);
+            //console.log('b___'+content);
             $('#sighting_detail').html(content);
 
+            
+            /*$( "#sighting_detail" ).popup({
+                create: function( event, ui ) {console.log('pop')},
+                beforeposition: function( event, ui ) {console.log('bp pop');}
+            });*/
+            //$('section').trigger('pagecreate');
             $('#sighting_start_input, #sighting_end_input').hide();
-
+            
             //manually pop up
             $("#sighting_detail").popup("open", {
                 "transition": "pop"
             });
+            
         }); 
     },
     buildActivityDetailPg: function(){
@@ -709,11 +736,13 @@ var app = {
 /*
 TODO: 
 == priorities ==
-- ** FIX BUG with stopping activities that are new to list  ... re-do datahandling for activity lists
+x - ** FIX BUG with stopping activities that are new to list  ... re-do datahandling for activity lists
 - !data! IMPORTANT: get lists of activities from outside DB and/or config file (like w/ sightings) 
             x-- make a buildActivityList func similar to buildSightings...
 - make phenotypes editable in "sighting log" section
 - show ongoing sightings from db at start
+- figure out storing procedure for list of activities in DB (addActivity func maybe) and see if you really need to store it in a property
+- location gps recording
 
 - ** add census entry to sighting
 
@@ -727,8 +756,12 @@ TODO:
 - maybe a top left corner drop-down to easily get to diff sections/ to show current activitiess/sightings
 
 
-== complete ==
 
+- in list of current activities, make start time editable ? (in addition to notes) 
+        --> combine functions here with functions for displaying activity detail in completed list (buildActivityDetailPg, etc)
+
+== complete ==
+x - fixed bug with sighting detail box not popping up
 x- list of activities should be clickable, so you can stop/edit activity    
 x- still TODO:  "update" button action in activity detail popup 
 x - activity record detail modal or page (like sightings)
