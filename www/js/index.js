@@ -19,16 +19,19 @@ var app = {
         this.setUpUI();  
         this.bindEvents();
 
-        //this.onDeviceReady(); //uncomment for browser debugging 
-        if (navigator.userAgent.match(/(Mozilla)/)){ //in browser, we'll assume (for debugging)
+        /*if (navigator.userAgent.match(/(Mozilla)/)){ // this is in browser, we'll assume (for debugging)
             console.log('browser');
             $(document).ready(this.onDeviceReady());                 
         } else {
             document.addEventListener('deviceready', this.onDeviceReady, false);
-        }       
+        } */  
+        document.addEventListener('deviceready', this.onDeviceReady, false);    
     },
     // set up the starting data -- from db or config file
     initData: function(){
+        // new PouchDB instance
+        dBase.init('robyn410','http://127.0.0.1:5984/zambia','http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia');
+
         app.all_phenotypes = studyData.all_phenotypes; //initial set of phenotypes
         app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for each sighting 
         app.current_sighting.phenotype_sightings = []; // set datatype of property to Array
@@ -74,6 +77,8 @@ var app = {
      
         // debug
          $('#reset').bind('click',this.resetDB);
+         $('#sync_test').bind('click',this.syncDebug);
+
 
          //geolocation
          //var watchID = navigator.geolocation.watchPosition(onSuccess, onError, { frequency: 3000 });
@@ -90,7 +95,9 @@ var app = {
 
         // build sightings log list -- this may be attached to an event later
         app.buildSightingsList(); 
-         
+         //debug
+         //console.log(dBase);
+         //app.showDebugRecords();
 
     },
     setUpUI: function(){
@@ -474,6 +481,7 @@ var app = {
             rows = acts.rows;
             for (r in rows){
                 doc = rows[r].value;
+                //console.log(doc);
                 li_tag = $('<li></li>');
                 a_tag = $('<a></a>');
                 a_tag.attr({href:"#activity_detail",'data-dbid':doc.id});
@@ -614,7 +622,7 @@ var app = {
         obsActivityObj.objtype = 'activity';
         // if this is an existing activity
         if (obsActivityObj._id && obsActivityObj._rev){
-            dBase.update(obsActivityObj,obsActivityObj._id,obsActivityObj._rev,function(results){
+            dBase.update(obsActivityObj,function(results){
                 obsActivityObj._rev = results.rev;
                 callback();
             });
@@ -629,7 +637,7 @@ var app = {
         sightingObj.objtype = 'sighting';
         // if this is an existing sighting
         if(sightingObj._id && sightingObj._rev){
-            dBase.update(sightingObj,sightingObj._id,sightingObj._rev,function(results){
+            dBase.update(sightingObj,function(results){
                 sightingObj._rev = results.rev;
                 callback();
             });
@@ -657,6 +665,7 @@ var app = {
         };
         dBase.db.query({map: map}, {reduce: false, descending:true}, function(err, response) { 
             //console.log(response);
+            //app.debug(JSON.stringify(response));
             callback(response);
         });
     },
@@ -693,10 +702,7 @@ var app = {
             callback(response);
         });
     },
-    couchSync: function(){
-        dBase.sync();
-    },
-
+    
     // Helpers
     debug: function(log){
         $('#msg').append(log + "<br/>");
@@ -724,27 +730,47 @@ var app = {
             }
          });
     },
-    testDb: function(){bserverActivity(app.my_obj);  
+    testDb: function(){ 
     },
     resetDB: function(){
         alert('db reset');
         dBase.db.destroy('zambia');
-        dBase.db = PouchDB('zambia');
-    }
+        dBase.db.destroy('mynewmonkeydb');
+        dBase.db.destroy('ethorecords');
+        dBase.db.destroy('zambiaproject');
+        //dBase.db = PouchDB('zambia');
+    },
+    syncDebug: function(){
+        //alert('sync debug');
+        dBase.couchSync(dBase.TO_REMOTE);
+        //dBase.couchSync(dBase.FROM_REMOTE);
+        
+        /*PouchDB.sync(dBase.remoteServer, {
+            onComplete: function(err,res){console.log('HELLO FROM SYNC!!!!!!');alert(err);
+                                                            alert(res);}
+        });;*/
+        //dBase.db.allDocs({include_docs: true}, function(err, response) { console.log(response)});
+    },
+    showDebugRecords: function () {
+        alert('show');
+        app.debug('showing');
+        dBase.db.all(function(r){app.debug(JSON.stringify(r))});
+    },
 };
 
 /*
 TODO: 
 == priorities ==
-x - ** FIX BUG with stopping activities that are new to list  ... re-do datahandling for activity lists
+
 - !data! IMPORTANT: get lists of activities from outside DB and/or config file (like w/ sightings) 
             x-- make a buildActivityList func similar to buildSightings...
 - make phenotypes editable in "sighting log" section
-- show ongoing sightings from db at start
+- show current sightings in progress at start-up (from local db) -- same as activities in progress
 - figure out storing procedure for list of activities in DB (addActivity func maybe) and see if you really need to store it in a property
 - location gps recording
 
 - ** add census entry to sighting
+- (small) -- time inputs. <input type="time" value="14:02"/> will show time picker in whatever format the device is set to, 24 hr or 12 hr
 
 == secondary ==
 - should be a way to delete records (?)
@@ -762,6 +788,7 @@ x - ** FIX BUG with stopping activities that are new to list  ... re-do datahand
 
 == complete ==
 x - fixed bug with sighting detail box not popping up
+x - FIX BUG with stopping activities that are new to list  ... re-do datahandling for activity lists
 x- list of activities should be clickable, so you can stop/edit activity    
 x- still TODO:  "update" button action in activity detail popup 
 x - activity record detail modal or page (like sightings)

@@ -124,6 +124,8 @@
                         <h4>End Time</h4>
                         <p><a href="#" class="edit_sighting_end ui-btn ui-nodisc-icon ui-btn-b ui-corner-all ui-icon-edit ui-btn-icon-notext ui-btn-inline">edit</a> 
                         {{end_time}}</p>
+                        <!--test <input type="time" value="14:02"/>-->
+                        
                         <div id="sighting_end_input" class="time_input"> 
                         <input id="hr_end" type="number" value="{{hr_end}}"> : <input id="min_end" type="number" value="{{min_end}}"></div>
                         <p><br/></p>
@@ -178,7 +180,11 @@
                     </script>
 
                     <hr/>
-                    <p><br/>For debugging: <a class="ui-btn ui-mini ui-btn-inline" id="reset">Reset DB</a></p>
+                    <p><br/>For debugging: 
+                        <a class="ui-btn ui-mini ui-btn-inline" id="reset">Reset DB</a>
+                        <a class="ui-btn ui-mini ui-btn-inline" id="sync_test">Sync Test</a>
+                        <div id="msg">msg</div>
+                    </p>
                 </main><!-- /main -->
             </section> <!-- /activities log -->
 
