@@ -64,6 +64,7 @@
                     data-role="button" data-icon="plus" data-theme="b" data-inline="true">Add Phenotype</a>
 
                     <div id= "pheno_obs" data-role="popup">
+                        <a href="#" data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
                         <h2>Phenotype observations</h2>
                         <!--<button id="new_pheno_obs">New</button>-->
                         <label for="phenotype_select">Phenotype</label>
@@ -71,8 +72,6 @@
                         <input type="text" id="new_phenotype" />
                         <label for="frequency_slider">Frequency</label>
                         <input id="frequency_slider" type="range" min="0" max="100" value="50" />
-                        <!--<input id="frequency_input" type="number" maxlength="3" size="3" value="50"/>-->
-                        
                         <br/>
 
                         <label for="pheno_notes">Phenotype Notes</label>
@@ -85,13 +84,6 @@
                         <h4>Phenotypes</h4>
                         <ul data-role="listview"></ul>
                     </div>
-                    <!--<div id="sightings_log">
-                        <h4>Sightings Log</h4>
-                        <ul class="sightings" data-role="listview"></ul>
-                    </div>-->
-                
-                    
-            
                 </div> <!-- /main -->
                 
                 <!-- <p>For debugging: <button id="reset">Reset</button></p> -->
@@ -179,12 +171,12 @@
                         <a href="#" id="update_activity_btn" class="ui-btn ui-corner-all ui-icon-check ui-btn-inline ui-btn-icon-left">Update</a>
                     </script>
 
-                    <hr/>
+                    <!--<hr/>
                     <p><br/>For debugging: 
                         <a class="ui-btn ui-mini ui-btn-inline" id="reset">Reset DB</a>
                         <a class="ui-btn ui-mini ui-btn-inline" id="sync_test">Sync Test</a>
                         <div id="msg">msg</div>
-                    </p>
+                    </p>-->
                 </main><!-- /main -->
             </section> <!-- /activities log -->
 

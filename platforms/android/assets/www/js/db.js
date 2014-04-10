@@ -1,9 +1,4 @@
 var dBase = {
-	//dbname: 'zambia',
-	//db: new PouchDB('mynewmonkeydb'), 
-	//db: new PouchDB('cleaninstall1'),
-	//remoteServer: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia', //+ dbname,
-	//localServer: ' http://127.0.0.1:5984/zambia',
 	// fake constants
 	TO_LOCAL: 1,
 	FROM_LOCAL: 2,
@@ -65,16 +60,13 @@ var dBase = {
 		// direction options: TO_REMOTE, FROM_REMOTE, TO_LOCAL, FROM_LOCAL
 		if (!dir){dir = this.TO_LOCAL;}
 		var opts = {continuous: false, complete:function(err,res){
-															alert('Sync complete');
-															/*app.debug('<h2>Error</h2>');
-															app.debug(JSON.stringify(err));
-															app.debug ('<h2>Response</h2>');
-															app.debug(JSON.stringify(res));*/
-															
-														}
+											alert('Sync complete');
+											/*app.debug('<h2>Error</h2>');
+											app.debug(JSON.stringify(err));
+											app.debug ('<h2>Response</h2>');
+											app.debug(JSON.stringify(res));*/
+											}
 										};
-		
-		//console.log(this.db.replicate);
 		switch (dir){
 			case this.TO_REMOTE:
 				alert('to remote');
@@ -95,25 +87,7 @@ var dBase = {
 				break;
 		}		
 	}
-	/*sync: function(){ 
-		//console.log('sync clicked');
-		//app.debug('sync clicked');
-		var opts = {continuous: false,complete:function(){alert('Synced to Couch');}};
-		this.db.replicate.to(this.remoteServer, opts);	
-	}*/
-	/*
-	,
-	findCompletedActivities:function(){
-		map = function(doc) {
-			if(doc.objtype == 'activity' && doc.end_time) {
-		   	 emit(doc._id, {activity_name:doc.activity_name,activity_id:doc.activity_id,start_time:doc.start_time,end_time:doc.end_time});
-		  	}
-		};
-		this.db.query({map: map}, {reduce: false}, function(err, response) { console.log(response)});
-	}*/
-
 	
-
 	/*
 	reset: function(){
 		this.db.destroy();
