@@ -230,11 +230,13 @@
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/css/images/icons-svg/video-white.svg \
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/img/logo.png \
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/img/notepad.png \
+/Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/js/config.js \
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/js/db.js \
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/js/gps.js \
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/js/index.js \
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/js/indexBU.js \
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/js/lib \
+/Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/js/location.js \
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/js/observerActivity.js \
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/js/sighting.js \
 /Users/rover/_dev/phonegap_local/zambia/platforms/android/assets/www/js/studyData.js \

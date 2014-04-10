@@ -4,12 +4,11 @@ var app = {
     sighting_currently_editing: {},
     activity_currently_editing: {},
     sighting_notes: '',
-    current_obs_activities: [],
+    //current_obs_activities: [],
     all_activities:[],
     timestamp_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
     time_only_format: "HH:mm",
     date_only_format: "YYYY-MM-DD",
-    activity_listening: false,
     all_phenotypes : {}, //initial set of phenotypes
     current_avail_phenotypes: {},// holds the phenotypes available for each sighting
     in_progress: {activities:[],sighting: {} }, // holds the names of objects (n activities or 1 sighting) started but not finished
@@ -20,10 +19,22 @@ var app = {
         this.setUpUI();  
         this.bindEvents();
 
-        //this.onDeviceReady(); //uncomment for browser debugging        
+        /*if (navigator.userAgent.match(/(Mozilla)/)){ // this is in browser, we'll assume (for debugging)
+            console.log('browser');
+            $(document).ready(this.onDeviceReady());                 
+        } else {
+            document.addEventListener('deviceready', this.onDeviceReady, false);
+        } */  
+        document.addEventListener('deviceready', this.onDeviceReady, false);    
     },
     // set up the starting data -- from db or config file
     initData: function(){
+        // DATABASE: new PouchDB instance
+        dBase.init('robyn410',{
+            local: 'http://192.168.1.2:5984/another_test',
+            remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/another_test'
+        });
+
         app.all_phenotypes = studyData.all_phenotypes; //initial set of phenotypes
         app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for each sighting 
         app.current_sighting.phenotype_sightings = []; // set datatype of property to Array
@@ -32,9 +43,13 @@ var app = {
     // Bind Event Listeners
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
-        $('#obs_activity_list > li').bind('click',this.startObsActivityRecord);
+        // when activity is chosen from list
+        $('#obs_activity_list').on('click','li',this.startObsActivityListener);
+        // "new activity" button in activity list
+        $('#new_act_btn').bind('click',this.newActivityListener);
+
         $('#sighting_time').bind('click',this.trackSightingTime);
-        $('#new_act_btn').bind('click',this.obsActivityListener); 
+         
         $('#add_pheno_btn').bind('click',this.makePhenotypeSelect);
         $( window ).on( "pagechange",this.pageChangeListener);
         $('#activity_notes_done_btn').bind('click', this.addActivityNotes);
@@ -51,9 +66,11 @@ var app = {
             });
         });
         $('ul.activities').on('click','.activity_item',app.buildActivityDetailPg);
-        $('#current_activity_records').on('click','.activity_stop_btn',this.stopActivityBtnListener);
+        $('#current_activity_records').on('click','.activity_stop_btn',app.stopActivityBtnListener);
         $('#activity_detail').on('click','.edit_activity_start',function(){$('#activity_start_input').toggle()});
         $('#activity_detail').on('click','.edit_activity_end',function(){$('#activity_end_input').toggle()});
+        // ******TODO!! need funct to update whole actvity, not just the notes
+        $('#activity_detail').on('click','#update_activity_btn',this.updateObsActivityListener);
          
         //sightings
         $('ul.sightings').on('click','.sighting_item',app.buildSightingDetailPg);
@@ -63,6 +80,11 @@ var app = {
      
         // debug
          $('#reset').bind('click',this.resetDB);
+         $('#sync_test').bind('click',this.syncDebug);
+
+
+         //geolocation
+         //var watchID = navigator.geolocation.watchPosition(onSuccess, onError, { frequency: 3000 });
     },
     // deviceready Event Handler
     onDeviceReady: function() {
@@ -76,7 +98,9 @@ var app = {
 
         // build sightings log list -- this may be attached to an event later
         app.buildSightingsList(); 
-         
+         //debug
+         //console.log(dBase);
+         //app.showDebugRecords();
 
     },
     setUpUI: function(){
@@ -121,83 +145,60 @@ var app = {
         if (location.hash == '#activity_log'){
             app.buildCompletedActivitiesList();
         }
+        if (location.hash == '#sightings_log'){
+            //$('[data-role="content"]').trigger('create');
+           // $('#sighting_detail').trigger('pagecreate');
+            console.log('hash sightings_log');
+            //$( "#sighting_detail" ).popup();
+        }
+
+        // refresh jQm UI elements
+        //$('[data-role="listview"]').listview();
 
     },
-    obsActivityListener: function(){
-        console.log('obsActivityListener');
+    /* listener for creating a new record of an existing activity type */
+    startObsActivityListener: function(){
+        // get the values and pass them out of the listener asap
+        obj = {}; 
+        obj.activity_name = $(this).text();
+        obj.activity_id = $(this).attr('data-actid');
+        app.confirmStartObsActivity(obj);
+    },
+    /* listener for creating a new type of activity */
+    newActivityListener: function(){
+        // new activity name from input element
         activity_name = $('#new_activity_field').val();
-        // need to make a temporary id # -- using text instead of number
-        activity_id = 'temp_id_' + activity_name;
-        actObj = {};
-        actObj.activity_id = activity_id;
-        actObj.activity_name = activity_name;
-        //add activity to list
-        app.current_obs_activities.push(actObj);
-        index = app.current_obs_activities.length - 1;
-        // start activity timer
-        trackedObj = app.trackObserverActivityTime(index);
-        $('#current_activity_records').show();
+        // make temporary id, using text for uniqueness instead of number
+        activity_id = 'temp_id_' + activity_name; 
+         
+        // --- step 1: deal with the new type of activity
+        // store the new activity name/id (key/value) to master array of all activities (in property -- not DB)
+        // not needed by NoSQL database bc activities are stored as part of obs-activity records
+        // BUT it should be stored in DB so it's remembered on refresh. 
 
-        // show the new record in the <ul> list of activities in progress
-        app.addActivityRecordLi(activity_name,index,trackedObj.start_time);
+        app.all_activities[activity_id] = activity_name;
 
-        // add new activity to selection list
-        // remove last child class and add new last child
+        // in UI, add new activity to the list of activity options
+        // remove last child class and add last child class to new element
         $('#obs_activity_list li:last-child').removeClass('ui-last-child');
-        $('#obs_activity_list').append('<li class="ui-last-child" data-actid="'+activity_id+'"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">'+activity_name+'</a></li>');
-
-        //add to master list of activities
-        studyData.all_activities[activity_id] = activity_name;
-    },
-    startObsActivityRecord: function(){ // new record
-        console.log('start activity');
-        activity_name = $(this).text();
-        activity_id = $(this).attr('data-actid');
-        if (app.showConfirm('Start '+ activity_name + '?')){
-            actObj = {};
-            actObj.objtype = 'activity';
-            actObj.activity_name = activity_name;
-            actObj.activity_id = activity_id;
-            actObj.start_time = moment().format(app.timestamp_format);
-            // store in local db
-            app.saveActivity(actObj,function(r){
-                //console.log('save done '+ actObj._id);
-                // UI
-                app.addActivityRecordLi(actObj.activity_name,actObj._id,actObj.start_time);
-                $('#current_activity_records').show();
-                $('.status_bar').html('Observer Activity Started');
-            });
-            //console.log(actObj);   
-        }
-    },
-    endObsActivityRecord: function(id,callback){ // can take an existing doc object or an id number to find the doc
-        if ((typeof id == "object" ) && (id !== null)){
-            doc = id;
-            doc.end_time = moment().format(app.timestamp_format);
-            app.saveActivity(doc);
-            callback();
-        } else {
-            // find the record, do the update
-            dBase.find(id,function(doc){
-                doc.end_time = moment().format(app.timestamp_format);
-                app.saveActivity(doc);
-                callback();
-            });
-        }
-        //callback('test');
+        li = '<li class="ui-last-child" data-actid="'+activity_id+'">';
+        li += '<a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">'+activity_name+'</a></li>';
+        $('#obs_activity_list').append(li);
         
+        // --- step 2: add the instance of this activity
+        // add the new record of this activity w/ start time to DB
+        obsActRecordObj = {};
+        obsActRecordObj.activity_id = activity_id;
+        obsActRecordObj.activity_name = activity_name;
+        // add start time
+        obsActRecordObj.start_time = moment().format(app.timestamp_format);
+        // send it to general add new obs act func
+        app.addNewObsActivity(obsActRecordObj);
     },
-    updateObsActivityNotes: function(id,notes){
-        dBase.find(id,function(doc){
-            doc.activity_notes = notes;
-            app.saveActivity(doc);
-            $('.status_bar').html('Observer Activity Notes Updated');
-        });
-    },
-    
     stopActivityBtnListener:function(){
-        console.log('stop');
+        //console.log('stop');
         record_id = $(this).attr('data-recordid');
+        //console.log(record_id);
         var this_btn = $(this); //stop_btn
         //console.log('stop activity click '+record_id);
         dBase.find(record_id,function(doc){
@@ -212,6 +213,103 @@ var app = {
                 });    
             }
         });     
+    },
+    
+    phenoSelectListener: function(){
+        if ($(this).val() == 'new'){
+            $('#new_phenotype').show();
+        } else {
+            $('#new_phenotype').hide();
+        }
+    },
+    updateObsActivityListener: function(){
+        console.log('update oa listener');
+        // using app.activity_currently_editing property so all the stored info doesn't have to go thru the form
+        // get values from form
+        app.activity_currently_editing.activity_notes = $('#activity_detail > p.activity_notes').text();
+        updated_start_time = $('#activity_detail input#hr_start').val() + ':'+$('#activity_detail input#min_start').val();
+        updated_end_time = $('#activity_detail input#hr_end').val() + ':'+$('#activity_detail input#min_end').val();
+        // get the day part of the date back out
+        day = $('#oa_day_only_date').val();
+        app.activity_currently_editing.start_time = moment(day + ' ' + updated_start_time).format(app.timestamp_format);
+        app.activity_currently_editing.end_time = moment(day + ' ' + updated_end_time).format(app.timestamp_format);
+        
+        app.saveObsActivity(app.activity_currently_editing, function(){
+             $('.status_bar').html('Observer Activity Updated');
+             $("#activity_detail").popup("close", {"transition": "pop"});
+             app.buildCompletedActivitiesList();
+        });
+    },
+    updateSightingListener: function(){
+        app.sighting_currently_editing.sighting_notes = $('#sighting_detail > p.sighting_notes').text();
+        orig_date = moment(app.sighting_currently_editing.start_time).format(app.date_only_format);
+        if(isNaN(orig_date)){ // if the date got corrupted, set it to today
+            orig_date = moment().format(app.date_only_format);
+        }
+
+        updated_start = $('#sighting_detail input#hr_start').val() + ':'+$('#sighting_detail input#min_start').val();
+        updated_end = $('#sighting_detail input#hr_end').val() + ':'+$('#sighting_detail input#min_end').val();
+        app.sighting_currently_editing.start_time = moment(orig_date + ' ' + updated_start).format(app.timestamp_format);
+        app.sighting_currently_editing.end_time = moment(orig_date + ' ' + updated_end).format(app.timestamp_format);
+
+        //console.log(app.sighting_currently_editing._id);
+        //console.log(updated_start);
+        //console.log(moment(orig_date + ' ' + updated_end).format(app.timestamp_format));
+        app.saveSighting(app.sighting_currently_editing,function(){
+            // close the pop-up window
+            $("#sighting_detail").popup("close", {"transition": "pop"});
+
+            /* change the li value <-- you could do this and not reload from DB, but it won't update the sort order
+            new_content = 'start: ' + moment(app.sighting_currently_editing.start_time).format(app.time_only_format);
+            new_content += ' end: ' + moment(app.sighting_currently_editing.end_time).format(app.time_only_format);
+            $("a[data-dbid='"+ app.sighting_currently_editing._id +"']").text(new_content);
+            */
+            app.buildSightingsList();
+        });
+    },
+
+    // ------- / end listeners ----------
+
+    confirmStartObsActivity: function(obj){ //an obsAct obj has: start,end,activity
+        // object should have activity name and activity id
+        // if confirmed, set the time and store it
+        if (app.showConfirm('Start '+ obj.activity_name + '?')){
+            //set the start time for this obj
+            obj.start_time = moment().format(app.timestamp_format);
+            // send it to general add new obs act func
+            app.addNewObsActivity(obj);
+        }
+    },
+    addNewObsActivity: function(obj){
+        // save it. 
+        app.saveObsActivity(obj,function(r){
+            // show it in the list of currently running activities
+            app.addActivityRecordLi(obj.activity_name,obj._id,obj.start_time);
+            // show message in status bar
+            $('.status_bar').html('Observer Activity Started');
+        });
+    },
+    endObsActivityRecord: function(id,callback){ // can take an existing doc object or an id number to find the doc
+        if ((typeof id == "object" ) && (id !== null)){
+            doc = id;
+            doc.end_time = moment().format(app.timestamp_format);
+            app.saveObsActivity(doc,function(){console.log('endObsActivityRecord')});
+            callback();
+        } else {
+            // find the record, do the update
+            dBase.find(id,function(doc){
+                doc.end_time = moment().format(app.timestamp_format);
+                app.saveObsActivity(doc, function(){console.log('endObsActivityRecord')});
+                callback();
+            });
+        }        
+    },
+    updateObsActivityNotes: function(id,notes){ /* redundant. could be worked into another function. keeping for now. */
+        dBase.find(id,function(doc){
+            doc.activity_notes = notes;
+            app.saveObsActivity(doc,function(){});
+            $('.status_bar').html('Observer Activity Notes Updated');
+        });
     },
     savePhenotypeToSighting: function(){
         /* phenotype object structure
@@ -269,57 +367,6 @@ var app = {
         // remove selected phenotype from option list -- each can only be used once per sighting
         $('#phenotype_select option:selected').remove();
         
-    },
-    phenoSelectListener: function(){
-        if ($(this).val() == 'new'){
-            $('#new_phenotype').show();
-        } else {
-            $('#new_phenotype').hide();
-        }
-    },
-    updateSightingListener: function(){
-        app.sighting_currently_editing.sighting_notes = $('#sighting_detail > p.sighting_notes').text();
-        orig_date = moment(app.sighting_currently_editing.start_time).format(app.date_only_format);
-        if(isNaN(orig_date)){ // if the date got corrupted, set it to today
-            orig_date = moment().format(app.date_only_format);
-        }
-
-        updated_start = $('#sighting_detail input#hr_start').val() + ':'+$('#sighting_detail input#min_start').val();
-        updated_end = $('#sighting_detail input#hr_end').val() + ':'+$('#sighting_detail input#min_end').val();
-        app.sighting_currently_editing.start_time = moment(orig_date + ' ' + updated_start).format(app.timestamp_format);
-        app.sighting_currently_editing.end_time = moment(orig_date + ' ' + updated_end).format(app.timestamp_format);
-
-        //console.log(app.sighting_currently_editing._id);
-        //console.log(updated_start);
-        //console.log(moment(orig_date + ' ' + updated_end).format(app.timestamp_format));
-        app.saveSighting(app.sighting_currently_editing,function(){
-            // close the pop-up window
-            $("#sighting_detail").popup("close", {"transition": "pop"});
-
-            /* change the li value <-- you could do this and not reload from DB, but it won't update the sort order
-            new_content = 'start: ' + moment(app.sighting_currently_editing.start_time).format(app.time_only_format);
-            new_content += ' end: ' + moment(app.sighting_currently_editing.end_time).format(app.time_only_format);
-            $("a[data-dbid='"+ app.sighting_currently_editing._id +"']").text(new_content);
-            */
-            app.buildSightingsList();
-        });
-    },
-
-    // ------- Controllers ---------- 
-    trackObserverActivityTime: function(id){
-        actObj = app.current_obs_activities[id];
-        if (actObj){
-            if (actObj.clock_running){ 
-                actObj.clock_running = false; // stop timer
-                actObj.end_time = moment().format(app.timestamp_format); 
-            } else { 
-                actObj.clock_running = true; // start timer
-                actObj.start_time = moment().format(app.timestamp_format); 
-            }
-            return actObj;
-        } else {
-            return false;
-        }    
     },
     trackSightingTime: function(){
         if (app.current_sighting.start_time){ //STOP time if it's been started
@@ -434,15 +481,15 @@ var app = {
             //edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext activity_edit_btn">Edit</a>';
             rows = acts.rows;
             for (r in rows){
-                
                 doc = rows[r].value;
-                console.log(doc);
+                //console.log(doc);
                 li_tag = $('<li></li>');
                 a_tag = $('<a></a>');
                 a_tag.attr({href:"#activity_detail",'data-dbid':doc.id});
                 a_tag.addClass("activity_item ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left");
                 a_text = '<b>' + moment(doc.start_time).format(app.time_only_format);
-                a_text += ' &mdash; ' + moment(doc.end_time).format(app.time_only_format) + '</b>';
+                a_text += ' &mdash; ' + moment(doc.end_time).format(app.time_only_format);
+                a_text += ', ' + doc.activity_name +'</b>';
                 if (doc.activity_notes){
                     a_text += ' &nbsp; ' + doc.activity_notes;
                 } else {
@@ -506,6 +553,7 @@ var app = {
         });
     },
     buildSightingDetailPg: function(){
+        console.log('s detail');
         db_id = $(this).attr('data-dbid');
         dBase.find(db_id,function(doc){
             // store this object so it can be updated on submit listener
@@ -524,14 +572,22 @@ var app = {
             };
 
             content = app.sighting_detail_tpl(context_obj);
+            //console.log('b___'+content);
             $('#sighting_detail').html(content);
 
+            
+            /*$( "#sighting_detail" ).popup({
+                create: function( event, ui ) {console.log('pop')},
+                beforeposition: function( event, ui ) {console.log('bp pop');}
+            });*/
+            //$('section').trigger('pagecreate');
             $('#sighting_start_input, #sighting_end_input').hide();
-
+            
             //manually pop up
             $("#sighting_detail").popup("open", {
                 "transition": "pop"
             });
+            
         }); 
     },
     buildActivityDetailPg: function(){
@@ -550,7 +606,7 @@ var app = {
                 end_time: moment(doc.end_time).format(app.time_only_format),
                 hr_end: moment(doc.end_time).format('HH'),
                 min_end: moment(doc.end_time).format('mm'),
-                activity_notes: doc.sighting_notes
+                activity_notes: doc.activity_notes
             };
             content = app.activity_detail_tpl(context_obj);
             $('#activity_detail').html(content);
@@ -561,19 +617,19 @@ var app = {
             });
         });
     },
-    
 
     // Database
-    saveActivity: function(activityObj,callback){
-        activityObj.objtype = 'activity';
+    saveObsActivity: function(obsActivityObj,callback){
+        obsActivityObj.objtype = 'activity';
         // if this is an existing activity
-        if (activityObj._id && activityObj._rev){
-            dBase.update(activityObj,activityObj._id,activityObj._rev,function(results){
-                activityObj._rev = results.rev;
+        if (obsActivityObj._id && obsActivityObj._rev){
+            dBase.update(obsActivityObj,function(results){
+                obsActivityObj._rev = results.rev;
+                callback();
             });
-        } else {
-            dBase.add(activityObj,function(results){
-                activityObj._id = results.id;
+        } else { // new record
+            dBase.add(obsActivityObj,function(results){
+                obsActivityObj._id = results.id;
                 callback();
             });
         }   
@@ -582,7 +638,7 @@ var app = {
         sightingObj.objtype = 'sighting';
         // if this is an existing sighting
         if(sightingObj._id && sightingObj._rev){
-            dBase.update(sightingObj,sightingObj._id,sightingObj._rev,function(results){
+            dBase.update(sightingObj,function(results){
                 sightingObj._rev = results.rev;
                 callback();
             });
@@ -610,6 +666,7 @@ var app = {
         };
         dBase.db.query({map: map}, {reduce: false, descending:true}, function(err, response) { 
             //console.log(response);
+            //app.debug(JSON.stringify(response));
             callback(response);
         });
     },
@@ -646,10 +703,7 @@ var app = {
             callback(response);
         });
     },
-    couchSync: function(){
-        dBase.sync();
-    },
-
+    
     // Helpers
     debug: function(log){
         $('#msg').append(log + "<br/>");
@@ -677,39 +731,76 @@ var app = {
             }
          });
     },
-    testDb: function(){
-        app.my_obj = {a:123,b:543543};
-        /*dBase.add(app.my_obj,function(results){
-            //console.log(results);
-            app.my_obj.db_id = results.id;
-            //my_obj.db_rev = results.rev;
-            
-        });*/
-        app.saveActivity(app.my_obj);  
+    testDb: function(){ 
     },
     resetDB: function(){
-        alert('db reset');
+        /*alert('db reset');
         dBase.db.destroy('zambia');
-        dBase.db = PouchDB('zambia');
-    }
+        dBase.db.destroy('mynewmonkeydb');
+        dBase.db.destroy('ethorecords');
+        dBase.db.destroy('zambiaproject');*/
+        //dBase.db = PouchDB('zambia');
+    },
+    syncDebug: function(){
+        alert('sync debug');
+        dBase.couchSync(dBase.TO_REMOTE);
+        dBase.couchSync(dBase.TO_LOCAL);
+
+        /* // test conn to localhost directly
+        $.get("http://192.168.1.2:5984/apples_oranges", function (response) {
+            //alert('get');
+            app.debug("BASIC AJAX TEST =========" + JSON.stringify(response));
+        });*/
+        
+        /*PouchDB.sync(dBase.remoteServer, {
+            onComplete: function(err,res){console.log('HELLO FROM SYNC!!!!!!');alert(err);
+                                                            alert(res);}
+        });;*/
+        //dBase.db.allDocs({include_docs: true}, function(err, response) { console.log(response)});
+    },
+    showDebugRecords: function () {
+        alert('show');
+        app.debug('showing');
+        dBase.db.all(function(r){app.debug(JSON.stringify(r))});
+    },
 };
 
 /*
 TODO: 
+== priorities ==
+
+- !data! IMPORTANT: get lists of activities from outside DB and/or config file (like w/ sightings) 
+            x-- make a buildActivityList func similar to buildSightings...
+- make phenotypes editable in "sighting log" section
+- show current sightings in progress at start-up (from local db) -- same as activities in progress
+- figure out storing procedure for list of activities in DB (addActivity func maybe) and see if you really need to store it in a property
+- location gps recording
+
+- ** add census entry to sighting
+- (small) -- time inputs. <input type="time" value="14:02"/> will show time picker in whatever format the device is set to, 24 hr or 12 hr
+
+== secondary ==
+- should be a way to delete records (?)
+- on confirm new activity, show notes field (?)
+- separate data by day ... + day summary/history page/s?
+
+== extras, UI enhancements == 
+- show current activities on top bar or in pull-down, modal, etc
+- maybe a top left corner drop-down to easily get to diff sections/ to show current activitiess/sightings
+
+
+
+- in list of current activities, make start time editable ? (in addition to notes) 
+        --> combine functions here with functions for displaying activity detail in completed list (buildActivityDetailPg, etc)
+
+== complete ==
+x - fixed bug with sighting detail box not popping up
+x - FIX BUG with stopping activities that are new to list  ... re-do datahandling for activity lists
 x- list of activities should be clickable, so you can stop/edit activity    
 x- still TODO:  "update" button action in activity detail popup 
 x - activity record detail modal or page (like sightings)
 
 x - format phenotype list under current sighting
-- make phenotypes of sighting editable
-- show ongoing sightings from db at start 
-- make phenotypes editable in "sighting log" section
-
-- !data! IMPORTANT: get lists of activities from outside DB and/or config file (like w/ sightings) 
-            -- make a buildActivityList func similar to buildSightings...
-
-- show current activities on top bar or in pull-down, modal, etc
-- maybe a top left corner drop-down to easily get to diff sections/ to show current activitiess/sightings
 
 x - ** dynamic HEADER!
 
@@ -717,13 +808,6 @@ x add sightings to pouchDB (like with activities)
 x make update button work on sightings detail page. add close or cancel btn
 
 x for menus, check that the ui-active highlighting is working
-
-- should be a way to delete records
-
-- on confirm new activity, show notes field (?)
-
-** add census entry to sighting
-
-- separate data by day ... + day summary/history page/s? 
+ 
 
 */

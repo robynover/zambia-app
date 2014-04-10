@@ -29,8 +29,11 @@ var app = {
     },
     // set up the starting data -- from db or config file
     initData: function(){
-        // new PouchDB instance
-        dBase.init('robyn410','http://127.0.0.1:5984/zambia','http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia');
+        // DATABASE: new PouchDB instance
+        dBase.init('robyn410',{
+            local: 'http://192.168.1.2:5984/another_test',
+            remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/another_test'
+        });
 
         app.all_phenotypes = studyData.all_phenotypes; //initial set of phenotypes
         app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for each sighting 
@@ -290,23 +293,21 @@ var app = {
         if ((typeof id == "object" ) && (id !== null)){
             doc = id;
             doc.end_time = moment().format(app.timestamp_format);
-            app.saveObsActivity(doc);
+            app.saveObsActivity(doc,function(){console.log('endObsActivityRecord')});
             callback();
         } else {
             // find the record, do the update
             dBase.find(id,function(doc){
                 doc.end_time = moment().format(app.timestamp_format);
-                app.saveObsActivity(doc);
+                app.saveObsActivity(doc, function(){console.log('endObsActivityRecord')});
                 callback();
             });
-        }
-        //callback('test');
-        
+        }        
     },
     updateObsActivityNotes: function(id,notes){ /* redundant. could be worked into another function. keeping for now. */
         dBase.find(id,function(doc){
             doc.activity_notes = notes;
-            app.saveObsActivity(doc);
+            app.saveObsActivity(doc,function(){});
             $('.status_bar').html('Observer Activity Notes Updated');
         });
     },
@@ -733,17 +734,23 @@ var app = {
     testDb: function(){ 
     },
     resetDB: function(){
-        alert('db reset');
+        /*alert('db reset');
         dBase.db.destroy('zambia');
         dBase.db.destroy('mynewmonkeydb');
         dBase.db.destroy('ethorecords');
-        dBase.db.destroy('zambiaproject');
+        dBase.db.destroy('zambiaproject');*/
         //dBase.db = PouchDB('zambia');
     },
     syncDebug: function(){
-        //alert('sync debug');
+        alert('sync debug');
         dBase.couchSync(dBase.TO_REMOTE);
-        //dBase.couchSync(dBase.FROM_REMOTE);
+        dBase.couchSync(dBase.TO_LOCAL);
+
+        /* // test conn to localhost directly
+        $.get("http://192.168.1.2:5984/apples_oranges", function (response) {
+            //alert('get');
+            app.debug("BASIC AJAX TEST =========" + JSON.stringify(response));
+        });*/
         
         /*PouchDB.sync(dBase.remoteServer, {
             onComplete: function(err,res){console.log('HELLO FROM SYNC!!!!!!');alert(err);

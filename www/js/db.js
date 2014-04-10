@@ -1,20 +1,22 @@
 var dBase = {
-	//dbname: 'zambia',
-	//db: new PouchDB('mynewmonkeydb'), 
-	//db: new PouchDB('cleaninstall1'),
-	//remoteServer: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia', //+ dbname,
-	//localServer: ' http://127.0.0.1:5984/zambia',
 	// fake constants
 	TO_LOCAL: 1,
 	FROM_LOCAL: 2,
 	TO_REMOTE: 3,
 	FROM_REMOTE: 4, 
 	
-	// for future use, to make setting db info more flexible; would replace setting them above.
-	init: function (dbname,local,remote){ 
+	init: function (dbname, opts){ 
 		this.db = new PouchDB(dbname);
-		this.localServer = local;
-		this.remoteServer = remote;
+		if (opts.local){
+			this.localServer = opts.local;
+		}
+		if (opts.remote){
+			this.remoteServer = opts.remote;
+		}
+		// for future: split the base URL and the name of the db for local and remote servers
+		// ie, 'http://myhost.com:5984/mydb' vs. 'http://myhost.com:5984'
+		if (opts.local_dbname){}
+		if (opts.remote_dbname){}
 	},
 	all: function(callback){ //takes a callback function in order to return records
 		this.db.allDocs({include_docs: true},  
@@ -55,18 +57,14 @@ var dBase = {
 		});
 	},
 	couchSync: function(dir){ 
-		/*console.log('syncing');
-		console.log('dbname: '+ this.dbname);
-		console.log('local: ' + this.localServer);
-		console.log('remote: ' + this.remoteServer);*/
 		// direction options: TO_REMOTE, FROM_REMOTE, TO_LOCAL, FROM_LOCAL
 		if (!dir){dir = this.TO_LOCAL;}
 		var opts = {continuous: false, complete:function(err,res){
 															alert('Sync complete');
-															app.debug('<h2>Error</h2>');
+															/*app.debug('<h2>Error</h2>');
 															app.debug(JSON.stringify(err));
 															app.debug ('<h2>Response</h2>');
-															app.debug(JSON.stringify(res));
+															app.debug(JSON.stringify(res));*/
 															
 														}
 										};
@@ -74,8 +72,8 @@ var dBase = {
 		//console.log(this.db.replicate);
 		switch (dir){
 			case this.TO_REMOTE:
-				this.db.replicate.to(this.remoteServer, opts); //may need to use dBase and not 'this'?
-				//this.db.replicate.to('http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/abc', opts);
+				alert('to remote');
+				this.db.replicate.to(this.remoteServer, opts); 
 				break;
 
 			case this.FROM_REMOTE:
@@ -83,10 +81,8 @@ var dBase = {
 				break;
 
 			case this.TO_LOCAL:
-				alert('to local called');
-				//$.ajax("http://lvh.me:5984/_all_dbs").done(function(resp) { console.log(resp); });
-				//PouchDB.replicate('zambia', 'http://127.0.0.1:5984/zambia', {});
-				dBase.db.replicate.to('http://127.0.0.1:5984/zambia', opts);
+				alert('to local');
+				this.db.replicate.to(this.localServer, opts);
 				break;
 
 			case this.FROM_LOCAL:
