@@ -1,11 +1,9 @@
 var app = {
     // properties
-    current_sighting: {},
-    sighting_currently_editing: {},
+    current_sighting: {}, // the sighting happening now
+    sighting_currently_editing: {}, // a sighting that's being updated
     activity_currently_editing: {},
-    sighting_notes: '',
-    //current_obs_activities: [],
-    all_activities:[],
+    all_activities:[], //master list of all available activities, updated as new activities are added on the fly
     timestamp_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
     time_only_format: "HH:mm",
     date_only_format: "YYYY-MM-DD",
@@ -32,13 +30,13 @@ var app = {
         // DATABASE: new PouchDB instance
         dBase.init('robyn410',{
             local: 'http://192.168.1.2:5984/another_test',
-            remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/another_test'
+            remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/monday'
         });
-
-        app.all_phenotypes = studyData.all_phenotypes; //initial set of phenotypes
-        app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for each sighting 
-        app.current_sighting.phenotype_sightings = []; // set datatype of property to Array
-        app.all_activities = studyData.all_activities;
+        // APP DATA
+        app.all_phenotypes = studyData.all_phenotypes; //initialize the starting set of phenotypes
+        app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for current sighting 
+        app.current_sighting.sighting_phenotypes = []; // set datatype of property to Array
+        app.all_activities = studyData.all_activities; //initialize the starting set of available activities
     },
     // Bind Event Listeners
     bindEvents: function() {
@@ -56,8 +54,8 @@ var app = {
         $('#save_pheno_obs').bind('click',this.savePhenotypeToSighting);
         $('#phenotype_select').bind('change',this.phenoSelectListener);
 
-        // use .on() instead of .bind() to apply to elements added dynamically later
-        $('#current_activity_records').on('click','.activity_edit_btn',function(){
+        // Note: use .on() instead of .bind() to apply to elements added dynamically later
+        $('#current_activity_records').on('click','.activity_edit_btn',function(){ //todo: save to named function
             //attach record id to activity notes form
             rid = $(this).attr('data-recordid');
             $('#activity_notes').attr('data-recordid',rid);
@@ -337,7 +335,7 @@ var app = {
         ps.phenotype_notes = $('#pheno_notes').val();
 
         // ADD it to the array of phenotypes for this sighting obj
-        app.current_sighting.phenotype_sightings.push(ps);
+        app.current_sighting.sighting_phenotypes.push(ps);
         
         // UI
         // add to the display list of stored records
@@ -693,7 +691,7 @@ var app = {
                             start_time:doc.start_time,
                             end_time:doc.end_time,
                             sighting_notes: doc.sighting_notes,
-                            phenotype_sightings: doc.phenotype_sightings,
+                            sighting_phenotypes: doc.sighting_phenotypes,
                             id:doc._id
                             });
             }
@@ -744,7 +742,7 @@ var app = {
     syncDebug: function(){
         alert('sync debug');
         dBase.couchSync(dBase.TO_REMOTE);
-        dBase.couchSync(dBase.TO_LOCAL);
+        //dBase.couchSync(dBase.TO_LOCAL);
 
         /* // test conn to localhost directly
         $.get("http://192.168.1.2:5984/apples_oranges", function (response) {
