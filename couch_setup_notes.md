@@ -30,3 +30,12 @@ In the main index.js file of the PhoneGap project (www/js/index.js) find the "in
 	});
 	
 Change the value for "local" to your IP and the name of the database you just created.
+
+Find the syncDebug function near the end of the index.js file (ln 753 currently) -- it will look something like this: 
+
+	syncDebug: function(){
+		//dBase.couchSync(dBase.TO_REMOTE);
+		dBase.couchSync(dBase.TO_LOCAL);
+	}
+
+Make sure the "TO REMOTE" line is commented and "TO LOCAL" is not. 

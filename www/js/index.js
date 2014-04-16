@@ -77,7 +77,7 @@ var app = {
      
         // debug
          $('#reset').bind('click',this.resetDB);
-         $('#sync_test').bind('click',this.syncDebug);
+         $('#sync_btn').bind('click',this.syncDebug);
 
 
          //geolocation
@@ -94,7 +94,7 @@ var app = {
                                 'padding':'1em'
                             });   
 
-        // build sightings log list -- this may be attached to an event later
+        // build sightings log list -- this may be attached to a diff event later
         app.buildSightingsList(); 
          //debug
          //console.log(dBase);
@@ -751,21 +751,8 @@ var app = {
         //dBase.db = PouchDB('zambia');
     },
     syncDebug: function(){
-        alert('sync debug');
-        dBase.couchSync(dBase.TO_REMOTE);
-        //dBase.couchSync(dBase.TO_LOCAL);
-
-        /* // test conn to localhost directly
-        $.get("http://192.168.1.2:5984/apples_oranges", function (response) {
-            //alert('get');
-            app.debug("BASIC AJAX TEST =========" + JSON.stringify(response));
-        });*/
-        
-        /*PouchDB.sync(dBase.remoteServer, {
-            onComplete: function(err,res){console.log('HELLO FROM SYNC!!!!!!');alert(err);
-                                                            alert(res);}
-        });;*/
-        //dBase.db.allDocs({include_docs: true}, function(err, response) { console.log(response)});
+        //dBase.couchSync(dBase.TO_REMOTE);
+        dBase.couchSync(dBase.TO_LOCAL);
     },
     showDebugRecords: function () {
         alert('show');
