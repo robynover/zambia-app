@@ -20,9 +20,9 @@ var app = {
     // set up the starting data -- from db or config file
     initData: function(){
         // DATABASE: new PouchDB instance
-        dBase.init('robyn410',{
-            local: 'http://192.168.1.2:5984/my_tuesday_app',
-            remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/tuesday'
+        dBase.init('myzambia',{
+            local: 'http://192.168.1.2:5984/zambia415',
+            remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia415'
         });
         // APP DATA
         app.all_phenotypes = studyData.all_phenotypes; //initialize the starting set of phenotypes
