@@ -4,8 +4,8 @@
 
 2. Try putting that IP address into the browser on your device (assuming your computer and your tablet are on the same network).
 
-3. When #2 is working, start CouchDB. With the native OSX app, you can just start the Apache CouchDB application.
-	Ref:http://docs.couchdb.org/en/latest/install/mac.html#installation-using-the-apache-couchdb-native-application 
+3. When #2 is working, start CouchDB. With the native OSX app, you can just start the Apache CouchDB application. http://docs.couchdb.org/en/latest/install/mac.html#installation-using-the-apache-couchdb-native-application 
+	
 	Confirm that Couch is running by visiting localhost:5984/_utils on your Mac.
 	
 4. Now try the same address from step #2 in your mobile browser, but add the port number, eg., 192.168.1.3:5984. If it works, you'll see a short JSON string, like:
@@ -19,4 +19,14 @@ For reference, here is documentation on CouchDB config:
 	* http://docs.couchdb.org/en/latest/config/intro.html 
 	* http://docs.couchdb.org/en/latest/config/http.html
 
+6. On your Mac, go to Futon (the GUI interface for CouchDB) at localhost:5984/_utils and create a new database. Name it whatever you like. In the testing phases, I've been naming with a number to indicate a version, using the date, eg, "zambia415" on April 15, but use any convention you like. 
 
+#### In the PhoneGap files
+In the main index.js file of the PhoneGap project (www/js/index.js) find the "initData" function (line 21 as of this writing). The database is initialized with these lines:
+
+	dBase.init('somename',{
+		local: 'http://192.168.1.2:5984/zambia415',
+		remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/aname'
+	});
+	
+Change the value for "local" to your IP and the name of the database you just created.
