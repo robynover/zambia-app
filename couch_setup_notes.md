@@ -2,7 +2,7 @@
 
 1. Run "ifconfig" in Terminal to find your local IP, eg, 192.168.1.2. Look for either "en0" or "en1", and under that entry look for "inet".
 
-2. Try putting that IP address into the browser on your device (assuming your computer and your tablet are on the same network).
+2. Try putting that IP address into the browser on your device (assuming your computer and your tablet are on the same network). If it doesn't work, there are some additional steps you can try, described here: http://stackoverflow.com/questions/11005540/localhost-running-on-mac-can-i-view-it-on-my-android-phone
 
 3. When #2 is working, start CouchDB. With the native OSX app, you can just start the Apache CouchDB application. http://docs.couchdb.org/en/latest/install/mac.html#installation-using-the-apache-couchdb-native-application 
 	
