@@ -1,6 +1,6 @@
 ## Notes for CouchDB set-up on local OSX to work with a mobile device
 
-1. Run "ifconfig" in Terminal to find your local IP, eg, 192.168.1.2 
+1. Run "ifconfig" in Terminal to find your local IP, eg, 192.168.1.2. Look for either "en0" or "en1", and under that entry look for "inet".
 
 2. Try putting that IP address into the browser on your device (assuming your computer and your tablet are on the same network).
 
