@@ -15,22 +15,14 @@ var app = {
     initialize: function() {
         this.initData();
         this.setUpUI();  
-        this.bindEvents();
-
-        /*if (navigator.userAgent.match(/(Mozilla)/)){ // this is in browser, we'll assume (for debugging)
-            console.log('browser');
-            $(document).ready(this.onDeviceReady());                 
-        } else {
-            document.addEventListener('deviceready', this.onDeviceReady, false);
-        } */  
-        document.addEventListener('deviceready', this.onDeviceReady, false);    
+        this.bindEvents();   
     },
     // set up the starting data -- from db or config file
     initData: function(){
         // DATABASE: new PouchDB instance
         dBase.init('robyn410',{
-            local: 'http://192.168.1.2:5984/another_test',
-            remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/monday'
+            local: 'http://192.168.1.2:5984/my_tuesday_app',
+            remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/tuesday'
         });
         // APP DATA
         app.all_phenotypes = studyData.all_phenotypes; //initialize the starting set of phenotypes
@@ -40,6 +32,12 @@ var app = {
     },
     // Bind Event Listeners
     bindEvents: function() {
+        /*if (navigator.userAgent.match(/(Mozilla)/)){ // this is in browser, we'll assume (for debugging)
+            console.log('browser');
+            $(document).ready(this.onDeviceReady());                 
+        } else {
+            document.addEventListener('deviceready', this.onDeviceReady, false);
+        } */  
         document.addEventListener('deviceready', this.onDeviceReady, false);
         // when activity is chosen from list
         $('#obs_activity_list').on('click','li',this.startObsActivityListener);
@@ -51,8 +49,9 @@ var app = {
         $('#add_pheno_btn').bind('click',this.makePhenotypeSelect);
         $( window ).on( "pagechange",this.pageChangeListener);
         $('#activity_notes_done_btn').bind('click', this.addActivityNotes);
-        $('#save_pheno_obs').bind('click',this.savePhenotypeToSighting);
-        $('#phenotype_select').bind('change',this.phenoSelectListener);
+        //$('#pheno_obs').on('click','#save_pheno_obs',this.savePhenotypeToSighting);
+        $('#pheno_obs').on('click','#save_pheno_obs',this.addPhenotypeListener);
+        $('#pheno_obs').on('change','#phenotype_select',this.phenoSelectListener);
 
         // Note: use .on() instead of .bind() to apply to elements added dynamically later
         $('#current_activity_records').on('click','.activity_edit_btn',function(){ //todo: save to named function
@@ -86,6 +85,7 @@ var app = {
     },
     // deviceready Event Handler
     onDeviceReady: function() {
+        alert('device ready');
         //app.debug('device ready');
         // set size of pop-ups
         $('#new_activity,#pheno_obs,#sighting_detail,#activity_detail').css({
@@ -265,7 +265,13 @@ var app = {
             app.buildSightingsList();
         });
     },
-
+    addPhenotypeListener: function(){
+        app.savePhenotypeToSighting(function(){
+            //close the popup
+            console.log('close!');
+            $("#pheno_obs").popup("close", {"transition": "pop"});
+        });
+    },
     // ------- / end listeners ----------
 
     confirmStartObsActivity: function(obj){ //an obsAct obj has: start,end,activity
@@ -309,7 +315,7 @@ var app = {
             $('.status_bar').html('Observer Activity Notes Updated');
         });
     },
-    savePhenotypeToSighting: function(){
+    savePhenotypeToSighting: function(callback){
         /* phenotype object structure
         { 
             phenotype_id: 0,
@@ -317,9 +323,8 @@ var app = {
             phenotype_notes: "",
             frequency: 0.0
         };*/
-        
         ps = {}; //new phenotype object
-        // is this ia new phenotype?
+        // is this a new phenotype?
         if ($('#new_phenotype').val().length > 1){
             ps.phenotype_name = $('#new_phenotype').val();
             // ADD NEW one to the master list of phenotypes
@@ -339,7 +344,8 @@ var app = {
         
         // UI
         // add to the display list of stored records
-        $('#pheno_obs_records').show();
+        //$('#pheno_obs_records').show();
+        //console.log('added phenotype for sighting: '+ps.phenotype_name);
         $('#pheno_obs_records ul').append('<li>' + ps.phenotype_name + ' ' + ps.frequency+'</li>'); 
         $('#pheno_obs_records ul').listview('refresh'); // for jQm formatting
 
@@ -361,10 +367,12 @@ var app = {
         $('#phenotype_select').val(0);
         // jQm adds a <span> with the selected value. clear the value
         $('#phenotype_select-button > span').text(' . '); // the period is a placeholder bc UI weirdness
+        $('#phenotype_select').selectmenu('refresh');
 
         // remove selected phenotype from option list -- each can only be used once per sighting
         $('#phenotype_select option:selected').remove();
-        
+
+        callback();       
     },
     trackSightingTime: function(){
         if (app.current_sighting.start_time){ //STOP time if it's been started
@@ -375,8 +383,10 @@ var app = {
             app.saveSighting(app.current_sighting,function(){
                 // make a new empty object for the next sighting
                 app.current_sighting = {};
+                app.current_sighting.sighting_phenotypes = []; // empty array for phenotypes for this sighting
                 // update the sightings list
                 app.buildSightingsList();
+                
             });
 
             // UI
@@ -525,6 +535,7 @@ var app = {
     },
     buildSightingsList: function(){
         app.getCompletedSightings(function(sightings){
+            console.log(sightings);
             $('#sightings_log ul.sightings').html('');
             /*edit_btn = '<a href="#sighting_detail" data-rel="popup" 
             class="ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left">';*/

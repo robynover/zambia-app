@@ -81,7 +81,7 @@ a:hover.activity_edit_text{
     display: none;
 }
 #pheno_obs_records{
-    display: none;
+    /*display: none;*/
 }
 #sighting_notes_wrap{
     display: none;
