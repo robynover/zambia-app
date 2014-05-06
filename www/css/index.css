@@ -90,6 +90,16 @@ a:hover.activity_edit_text{
     display: none;
     font-weight: 400;
 }
+.phenotype_edit_btn{
+    float:left;
+    margin-right: 1em !important;
+    border:none !important;
+    background-color: inherit !important;
+}
+#pheno_obs_records ul li{
+    line-height: 2em;
+    margin-left: 1em;
+}
 #activity_records{
     display: none;
 }
@@ -134,4 +144,15 @@ div[data-role="navbar"] a{
 }
 div[data-role="popup"]{
     background-color: #fff;
+}
+.sync_wrap{
+    /*margin-top: 3em;*/
+    border-top: 1px solid #333;
+    width: 100%;
+    position: absolute;
+    bottom:0;
+}
+#config_btn{
+   /* z-index: 99999;*/
+   float:right;
 }

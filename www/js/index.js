@@ -3,13 +3,13 @@ var app = {
     current_sighting: {}, // the sighting happening now
     sighting_currently_editing: {}, // a sighting that's being updated
     activity_currently_editing: {},
+    sighting_phenotype_currently_editing: {},
     all_activities:[], //master list of all available activities, updated as new activities are added on the fly
     timestamp_format: "YYYY-MM-DD HH:mm:ss.SSS ZZ", // for momentJS library
     time_only_format: "HH:mm",
     date_only_format: "YYYY-MM-DD",
     all_phenotypes : {}, //initial set of phenotypes
-    current_avail_phenotypes: {},// holds the phenotypes available for each sighting
-    in_progress: {activities:[],sighting: {} }, // holds the names of objects (n activities or 1 sighting) started but not finished
+    //current_avail_phenotypes: {},// holds the phenotypes available for each sighting
    
     // Application Constructor
     initialize: function() {
@@ -17,22 +17,38 @@ var app = {
         this.setUpUI();  
         this.bindEvents();   
     },
-    // set up the starting data -- from db or config file
+    /*
+        Data tasks that don't need to wait for deviceready
+        Set the DB credentials and create the DB object
+        Populate properties with data from a js/json file
+     */
     initData: function(){
+        // set up server addresses - check for settings in local storage
+        var lserver = localStorage.getItem('localServerConfig');
+        var rserver = localStorage.getItem('remoteServerConfig');
+        console.log('SERVERS: Local: ' + lserver+ ' | Remote: ' + rserver);
+        //console.log(localStorage);
+        if (!lserver){lserver = 'http://128.122.6.170:5984/anything';}
+        if (!rserver){rserver = 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia415';}
         // DATABASE: new PouchDB instance
-        dBase.init('myzambia',{
-            local: 'http://192.168.1.2:5984/zambia415',
-            remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia415'
+        dBase.init('myzambia423',{ // the name of the pouchDB database, local to the device
+            local: lserver,
+            remote: rserver
         });
         // APP DATA
+        // todo: check pouchDB for most recent version of data, and only use studyData if it's not available
         app.all_phenotypes = studyData.all_phenotypes; //initialize the starting set of phenotypes
-        app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for current sighting 
-        app.current_sighting.sighting_phenotypes = []; // set datatype of property to Array
+
+        //app.current_avail_phenotypes = studyData.all_phenotypes; // holds the phenotypes available for current sighting 
+        // use: this.getAllPhenotypesFromDB();
+        app.current_sighting.sighting_phenotypes = []; // sets the datatype of property to Array
         app.all_activities = studyData.all_activities; //initialize the starting set of available activities
+
+        //app.makePhenotypeSelect();
     },
     // Bind Event Listeners
     bindEvents: function() {
-        /*if (navigator.userAgent.match(/(Mozilla)/)){ // this is in browser, we'll assume (for debugging)
+        /*if (navigator.userAgent.match(/(Mozilla)/)){ // if this is a reg browser (for debugging)
             console.log('browser');
             $(document).ready(this.onDeviceReady());                 
         } else {
@@ -47,11 +63,18 @@ var app = {
         $('#sighting_time').bind('click',this.trackSightingTime);
          
         $('#add_pheno_btn').bind('click',this.makePhenotypeSelect);
+        $('#pheno_obs_records').on('click','.phenotype_edit_btn',this.makePhenotypeSelect);
         $( window ).on( "pagechange",this.pageChangeListener);
         $('#activity_notes_done_btn').bind('click', this.addActivityNotes);
         //$('#pheno_obs').on('click','#save_pheno_obs',this.savePhenotypeToSighting);
         $('#pheno_obs').on('click','#save_pheno_obs',this.addPhenotypeListener);
         $('#pheno_obs').on('change','#phenotype_select',this.phenoSelectListener);
+        
+        // edit phenotype 
+        $("#pheno_obs_records").on('click','a.phenotype_edit_btn',this.setUpEditPhenoForm);
+        /*$( "#edit_phenotype_record" ).popup({
+              beforeposition: this.setUpEditPhenoForm
+            });*/
 
         // Note: use .on() instead of .bind() to apply to elements added dynamically later
         $('#current_activity_records').on('click','.activity_edit_btn',function(){ //todo: save to named function
@@ -66,7 +89,6 @@ var app = {
         $('#current_activity_records').on('click','.activity_stop_btn',app.stopActivityBtnListener);
         $('#activity_detail').on('click','.edit_activity_start',function(){$('#activity_start_input').toggle()});
         $('#activity_detail').on('click','.edit_activity_end',function(){$('#activity_end_input').toggle()});
-        // ******TODO!! need funct to update whole actvity, not just the notes
         $('#activity_detail').on('click','#update_activity_btn',this.updateObsActivityListener);
          
         //sightings
@@ -76,29 +98,25 @@ var app = {
         $('#sighting_detail').on('click','#update_sighting_btn',this.updateSightingListener);
      
         // debug
-         $('#reset').bind('click',this.resetDB);
-         $('#sync_btn').bind('click',this.syncDebug);
+        //$('#reset').bind('click',this.resetDB);
+        $('#sync_btn').bind('click',this.syncDebug);
 
+        // server config
+        $('#save_server_config').on('click',this.setServerListener);
 
-         //geolocation
-         //var watchID = navigator.geolocation.watchPosition(onSuccess, onError, { frequency: 3000 });
+        // geolocation (for future dev)
+        // var watchID = navigator.geolocation.watchPosition(onSuccess, onError, { frequency: 3000 });
     },
     // deviceready Event Handler
     onDeviceReady: function() {
-        alert('device ready');
+        //alert('device ready');
         //app.debug('device ready');
-        // set size of pop-ups
+        // set size of pop-ups to fill (most of) screen
         $('#new_activity,#pheno_obs,#sighting_detail,#activity_detail').css({
                                 'min-width':$(window).width() * .75,
                                 'min-height':$(window).height() * .75,
                                 'padding':'1em'
                             });   
-
-        // build sightings log list -- this may be attached to a diff event later
-        app.buildSightingsList(); 
-         //debug
-         //console.log(dBase);
-         //app.showDebugRecords();
 
     },
     setUpUI: function(){
@@ -119,17 +137,28 @@ var app = {
         //compile templates for later use with dynamic data
         app.sighting_detail_tpl = Handlebars.compile($("#sighting_detail_tpl").html());
         app.activity_detail_tpl = Handlebars.compile($("#activity_detail_tpl").html());
+
+        // initialize config panel (so it will work across pages)
+        $("#config").panel();
         
         // initial list of activity choices
         app.buildAllActivitiesList();
 
         // show in-progress activities (from db)
-        app.buildActiviesInProgressList();     
+        app.buildActiviesInProgressList();  
+
+        // build sightings log list
+        app.buildSightingsList(); 
+
     },
     
     // ---------- Listeners -------- //
+    /*
+        pageChangeListener
+        Helper to make sure tabs are highlighted correctly with respect to the current page
+          and any other page-specific tasks, mostly UI
+    */
     pageChangeListener: function(){
-        // indicate current page in main nav bar
         current_pg = ($( ".ui-page-active").attr('id'));
         //console.log($( ".main_nav ul li a" ));
         $('.main_nav ul li a').removeClass("ui-btn-active");
@@ -143,18 +172,20 @@ var app = {
         if (location.hash == '#activity_log'){
             app.buildCompletedActivitiesList();
         }
-        if (location.hash == '#sightings_log'){
+        /*if (location.hash == '#sightings_log'){
             //$('[data-role="content"]').trigger('create');
            // $('#sighting_detail').trigger('pagecreate');
-            console.log('hash sightings_log');
+            //console.log('hash sightings_log');
             //$( "#sighting_detail" ).popup();
-        }
+        }*/
 
         // refresh jQm UI elements
         //$('[data-role="listview"]').listview();
 
     },
-    /* listener for creating a new record of an existing activity type */
+    /* 
+        Listener for creating a new record of an existing activity type. 
+    */
     startObsActivityListener: function(){
         // get the values and pass them out of the listener asap
         obj = {}; 
@@ -162,7 +193,9 @@ var app = {
         obj.activity_id = $(this).attr('data-actid');
         app.confirmStartObsActivity(obj);
     },
-    /* listener for creating a new type of activity */
+    /* 
+        Listener for creating a new record with a new type of activity 
+    */
     newActivityListener: function(){
         // new activity name from input element
         activity_name = $('#new_activity_field').val();
@@ -172,7 +205,7 @@ var app = {
         // --- step 1: deal with the new type of activity
         // store the new activity name/id (key/value) to master array of all activities (in property -- not DB)
         // not needed by NoSQL database bc activities are stored as part of obs-activity records
-        // BUT it should be stored in DB so it's remembered on refresh. 
+        // BUT it should be stored in local DB so it's remembered on refresh. 
 
         app.all_activities[activity_id] = activity_name;
 
@@ -193,6 +226,9 @@ var app = {
         // send it to general add new obs act func
         app.addNewObsActivity(obsActRecordObj);
     },
+    /*
+        End an activity and store the end time.
+    */
     stopActivityBtnListener:function(){
         //console.log('stop');
         record_id = $(this).attr('data-recordid');
@@ -241,18 +277,14 @@ var app = {
     updateSightingListener: function(){
         app.sighting_currently_editing.sighting_notes = $('#sighting_detail > p.sighting_notes').text();
         orig_date = moment(app.sighting_currently_editing.start_time).format(app.date_only_format);
-        if(isNaN(orig_date)){ // if the date got corrupted, set it to today
+        if(isNaN(orig_date)){ // if the date got corrupted, set it to today (mostly for my debugging snafus)
             orig_date = moment().format(app.date_only_format);
         }
-
         updated_start = $('#sighting_detail input#hr_start').val() + ':'+$('#sighting_detail input#min_start').val();
         updated_end = $('#sighting_detail input#hr_end').val() + ':'+$('#sighting_detail input#min_end').val();
         app.sighting_currently_editing.start_time = moment(orig_date + ' ' + updated_start).format(app.timestamp_format);
         app.sighting_currently_editing.end_time = moment(orig_date + ' ' + updated_end).format(app.timestamp_format);
-
-        //console.log(app.sighting_currently_editing._id);
-        //console.log(updated_start);
-        //console.log(moment(orig_date + ' ' + updated_end).format(app.timestamp_format));
+        
         app.saveSighting(app.sighting_currently_editing,function(){
             // close the pop-up window
             $("#sighting_detail").popup("close", {"transition": "pop"});
@@ -268,14 +300,51 @@ var app = {
     addPhenotypeListener: function(){
         app.savePhenotypeToSighting(function(){
             //close the popup
-            console.log('close!');
             $("#pheno_obs").popup("close", {"transition": "pop"});
         });
     },
+    setServerListener: function(){
+        //console.log($(this).parent());
+        //console.log('setServerListener');
+        ls = null;
+        rs = null;
+        //console.log( 'setServerListener');
+        if ($('#local_server').val()){
+            ls = $('#local_server').val();
+        }
+        if ($('#remote_server').val()){
+            rs = $('#remote_server').val();
+        }
+        app.setServerAddress(ls,rs);
+    },
+    setUpEditPhenoForm: function(event,ui){
+        pheno_id = $(this).attr('data-recordid');
+        //console.log('record id = '+pheno_id+'_');
+        app.sighting_phenotype_currently_editing = app.current_sighting.sighting_phenotypes[pheno_id];
+        //console.log(app.current_sighting.sighting_phenotypes);
+        //console.log(app.sighting_phenotype_currently_editing);
+
+        // set all the fields to the values of this record
+        //$('#save_pheno_obs').text('Update'); //<a> button
+        //$('#phenotype_select').val(pheno_id);
+        $('#frequency_slider').val(app.sighting_phenotype_currently_editing.frequency * 100);
+        $('#pheno_notes').val(app.sighting_phenotype_currently_editing.phenotype_notes);
+        $("#pheno_obs").attr('data-recordid',pheno_id);
+
+        //refresh jQm
+       // $('#phenotype_select').selectmenu('refresh'); 
+        $('#frequency_slider').slider( "refresh" );
+        $('#pheno_notes').textinput( "refresh" );
+        //open
+        $("#pheno_obs").popup('open');
+        //clear currently_editing
+        app.sighting_phenotype_currently_editing = {};
+    },
+
     // ------- / end listeners ----------
 
     confirmStartObsActivity: function(obj){ //an obsAct obj has: start,end,activity
-        // object should have activity name and activity id
+        // object should already contain activity name and activity id
         // if confirmed, set the time and store it
         if (app.showConfirm('Start '+ obj.activity_name + '?')){
             //set the start time for this obj
@@ -293,7 +362,10 @@ var app = {
             $('.status_bar').html('Observer Activity Started');
         });
     },
-    endObsActivityRecord: function(id,callback){ // can take an existing doc object or an id number to find the doc
+    /*
+        @id param can be an (int) id number used to find a doc object or an (object) existing doc object 
+    */
+    endObsActivityRecord: function(id,callback){ 
         if ((typeof id == "object" ) && (id !== null)){
             doc = id;
             doc.end_time = moment().format(app.timestamp_format);
@@ -323,9 +395,26 @@ var app = {
             phenotype_notes: "",
             frequency: 0.0
         };*/
-        ps = {}; //new phenotype object
+        is_edit = false;
+        // check if it's an edit
+        pid = null;
+        orig_pid = null;
+        if ($('#pheno_obs').attr('data-recordid')){
+            is_edit = true;
+            pid = $('#pheno_obs').attr('data-recordid');
+            orig_pid = pid;
+            console.log("EDIT! "+ pid);
+        }
+
+        if (is_edit){
+            ps = app.current_sighting.sighting_phenotypes[pid];
+        } else {
+            ps = {}; //new phenotype object
+        }
+       
         // is this a new phenotype?
         if ($('#new_phenotype').val().length > 1){
+            console.log('new phenotype');
             ps.phenotype_name = $('#new_phenotype').val();
             // ADD NEW one to the master list of phenotypes
             //    ~ use name as id bc there is not an id from the db yet
@@ -333,44 +422,79 @@ var app = {
         } else {
             ps.phenotype_id = $('#phenotype_select').val();
             ps.phenotype_name = $('#phenotype_select option:selected').text();
+            console.log('phenotype_name '+ ps.phenotype_name);
             // REMOVE it from list of currently available phenotypes
-            delete app.current_avail_phenotypes[ps.phenotype_id];
+            //delete app.current_avail_phenotypes[ps.phenotype_id];
         }
         ps.frequency = $('#frequency_slider').val()/100;
         ps.phenotype_notes = $('#pheno_notes').val();
 
-        // ADD it to the array of phenotypes for this sighting obj
-        app.current_sighting.sighting_phenotypes.push(ps);
+        // ADD (or overwrite) it to the array of phenotypes for this sighting obj
+        // if the phenotype key has changed, delete the old one:
+        if (orig_pid != pid){
+            delete app.current_sighting.sighting_phenotypes[orig_pid];
+        }
+        if (ps.phenotype_id){
+            key = ps.phenotype_id;
+        } else {
+            key = ps.phenotype_name;
+        }
+        app.current_sighting.sighting_phenotypes[key] = ps;
+        console.log('ps:');
+        console.log(ps);
         
         // UI
-        // add to the display list of stored records
-        //$('#pheno_obs_records').show();
-        //console.log('added phenotype for sighting: '+ps.phenotype_name);
-        $('#pheno_obs_records ul').append('<li>' + ps.phenotype_name + ' ' + ps.frequency+'</li>'); 
-        $('#pheno_obs_records ul').listview('refresh'); // for jQm formatting
+        // add to the display list of stored records (if it's new)
+        if (!pid || pid != orig_pid){
+            if (ps.phenotype_id){
+                pid = ps.phenotype_id;
+            } else{
+                pid = ps.phenotype_name;
+            }
+        }
+        
+        edit_link = '<a href="#pheno_obs" data-rel="popup" data-recordid="'+pid + '" ';
+        edit_link += 'class="phenotype_edit_btn ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext ui-corner-all">edit</a>';
+        li_inside = edit_link + ps.phenotype_name + ' ' + ps.frequency;
+        console.log('phenotype_name 2 '+ ps.phenotype_name);
+        li_text = '<li data-recordid="'+pid + '" >'+ li_inside+'</li>';
+        if (!is_edit){
+            $('#pheno_obs_records ul').append(li_text); 
+            $('#pheno_obs_records ul').listview('refresh'); // for jQm formatting
+        } else { //update the existing list item
+            console.log('li inside: '+li_inside);
+            console.log($("#pheno_obs_records ul li[data-recordid="+pid+"]"));
+            $("#pheno_obs_records ul li[data-recordid="+orig_pid+"]").html(edit_link + ps.phenotype_name + ' ' + ps.frequency);
+            // if the phenotype itself changed, change the record id data to match id of new phenotype
+            if (orig_pid != pid){
+                $("#pheno_obs_records ul li[data-recordid="+orig_pid+"]").attr('data-recordid',pid);
+            }
+        }
 
         // clear/reset all the values in the phenotype form
         $('#frequency_slider').val(50); //slider input element
         // slider widget created by jQmobile
-        sliderwidget = $("a.ui-slider-handle[aria-labelledby='frequency_slider-label']");
+        /*sliderwidget = $("a.ui-slider-handle[aria-labelledby='frequency_slider-label']");
         sliderwidget.attr({
                             'aria-valuenow': 50,
                             title: 50,
                             'aria-valuetext': 50,
                             }); 
-        sliderwidget.css('left','50%');
-        $('[type="range"]').slider(); //jQm func to reset slider (?)
-
+        sliderwidget.css('left','50%');*/
+        $('#frequency_slider').slider("refresh"); //jQm func to reset slider (?)
         $('#pheno_notes').val('');
         $('#new_phenotype').val('');
         $('#new_phenotype').hide();
-        $('#phenotype_select').val(0);
+        //$('#phenotype_select').val(0);
         // jQm adds a <span> with the selected value. clear the value
-        $('#phenotype_select-button > span').text(' . '); // the period is a placeholder bc UI weirdness
-        $('#phenotype_select').selectmenu('refresh');
-
+        //$('#phenotype_select-button > span').text(' . '); // the period is a placeholder bc UI weirdness
+        $('#phenotype_select').selectmenu('refresh'); //<-- jQm should take care of clearing it with this func
+        
         // remove selected phenotype from option list -- each can only be used once per sighting
-        $('#phenotype_select option:selected').remove();
+        //$('#phenotype_select option:selected').remove();
+        // clear the id from editing 
+        $("#pheno_obs").removeAttr('data-recordid');
+        //$("#pheno_obs").popup("close");
 
         callback();       
     },
@@ -405,12 +529,12 @@ var app = {
             app.current_sighting.start_time = moment().format(app.timestamp_format);//Date.now();
 
             // with each new sighting, get the most recent list of all phenotypes 
-            //      have to make a new object in order to "clone", otherwise it's passed by ref
-            //      app.current_avail_phenotypes = app.all_phenotypes; //<-- copies by ref
-            app.current_avail_phenotypes = [];
+            //      - have to make a new object in order to "clone", otherwise it's passed by reference
+            //      - ex: app.current_avail_phenotypes = app.all_phenotypes; //<-- copies by ref
+            /*app.current_avail_phenotypes = [];
             for (p in app.all_phenotypes){
                 app.current_avail_phenotypes[p] = app.all_phenotypes[p];
-            }
+            }*/
 
             // UI
             // status bar 
@@ -436,6 +560,8 @@ var app = {
             //$('#pheno_obs_records').hide();
         } 
     },  
+    /*
+    // not currently used
     showActivityNotes: function(){
         record_id = $(this).attr('data-recordid');
         dBase.find(record_id,function(doc){
@@ -443,32 +569,28 @@ var app = {
         });
         $('#activity_notes').attr('data-recordid',record_id);
         $('#activity_notes').show();
-    },
-    addActivityNotes: function(){
-        //console.log($('#activity_notes').attr('data-recordid'));
+    },*/
+    addActivityNotes: function(){  // this could prob be folded into another function for a general update (not just notes)
         id = $('#activity_notes').attr('data-recordid');
         notes = $('#activity_notes_field').val();
         app.updateObsActivityNotes(id,notes);
         // clear values
         $('#activity_notes_field').val('');
         $('#activity_notes').removeAttr('data-recordid');
-
     },
 
     // ------------- UI --------------
     makePhenotypeSelect: function(){
-        /*console.log('make select btn');
-        console.log('current: ');
-        console.log(app.current_avail_phenotypes);
-        console.log('all: ');
-        console.log(app.all_phenotypes);*/
         //$('#phenotype_select').html('<option value=""></option>');
+        console.log('makePhenotypeSelect');
         $('#phenotype_select').html('');
-        for (p in app.current_avail_phenotypes){
+        /*for (p in app.current_avail_phenotypes){
             $('#phenotype_select').append('<option value="'+ p +'">'+ app.current_avail_phenotypes[p] + '</option>');
+        }*/
+        for (p in app.all_phenotypes){
+            $('#phenotype_select').append('<option value="'+ p +'">'+ app.all_phenotypes[p] + '</option>');
         }
         $('#phenotype_select').append('<option value="new">New Phenotype</option>'); 
-        // to do: add listener to show an input box when "New" is chosen
     },
     addActivityRecordLi: function(activity_name,id,start_time){
         li_text = '<a href="#activity_notes" data-rel="popup" class="activity_edit_btn activity_edit_text ui-btn ui-btn-inline" ';
@@ -483,7 +605,6 @@ var app = {
         //$('#current_activity_records ul').append('<li><a href="#" class="ui-icon-edit">'+ li_text +'</a><a href="#" class="ui-icon-edit">stop</a></li>'); 
     },
     buildCompletedActivitiesList: function(){
-        //acts = app.getCompletedActivities();
         app.getCompletedActivities(function(acts){
             $('#activity_log ul.activities').html('');
             //edit_btn = '<a href="#" class="ui-btn ui-icon-edit ui-btn-inline ui-btn-icon-notext activity_edit_btn">Edit</a>';
@@ -516,7 +637,6 @@ var app = {
             rows = acts.rows;
             for (r in rows){
                 doc = rows[r].value;
-                //console.log(doc);
                 app.addActivityRecordLi(doc.activity_name,doc.id,doc.start_time);
             }
             ct = rows.length;
@@ -535,7 +655,6 @@ var app = {
     },
     buildSightingsList: function(){
         app.getCompletedSightings(function(sightings){
-            console.log(sightings);
             $('#sightings_log ul.sightings').html('');
             /*edit_btn = '<a href="#sighting_detail" data-rel="popup" 
             class="ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left">';*/
@@ -549,7 +668,8 @@ var app = {
                 a_tag.addClass("sighting_item ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left");
                 //li = '<li>' + edit_btn;
                 a_text = '<b>' + moment(doc.start_time).format(app.time_only_format);
-                a_text += ' &mdash; ' + moment(doc.end_time).format(app.time_only_format) + '</b>';
+                a_text += ' &mdash; ' + moment(doc.end_time).format(app.time_only_format);
+                a_text += ' ' + moment(doc.start_time).format(app.date_only_format) + '</b>';
                 a_text += ' &nbsp; ' + doc.sighting_notes;
                 
                 a_tag.html(a_text);
@@ -561,9 +681,13 @@ var app = {
             $('#sightings_log ul.sightings').listview('refresh'); //jQm re-parse css/js
         });
     },
+    /*
+        Fill in data to the Sighting Detail template block in HTML
+            uses Handlebars.js templating library
+    */
     buildSightingDetailPg: function(){
-        console.log('s detail');
-        db_id = $(this).attr('data-dbid');
+        // the doc id is stored in a data attr in this <li>
+        db_id = $(this).attr('data-dbid'); 
         dBase.find(db_id,function(doc){
             // store this object so it can be updated on submit listener
             app.sighting_currently_editing = doc;
@@ -579,16 +703,11 @@ var app = {
                 min_end: moment(doc.end_time).format('mm'),
                 sighting_notes: doc.sighting_notes
             };
-
+            // Handlebars template
             content = app.sighting_detail_tpl(context_obj);
             //console.log('b___'+content);
             $('#sighting_detail').html(content);
 
-            
-            /*$( "#sighting_detail" ).popup({
-                create: function( event, ui ) {console.log('pop')},
-                beforeposition: function( event, ui ) {console.log('bp pop');}
-            });*/
             //$('section').trigger('pagecreate');
             $('#sighting_start_input, #sighting_end_input').hide();
             
@@ -599,6 +718,10 @@ var app = {
             
         }); 
     },
+    /*
+        Fill in Handlebars.js template for Activity Detail 
+            (this and the buildSightingDetail func could be combined in one. d.r.y.)
+    */
     buildActivityDetailPg: function(){
         db_id = $(this).attr('data-dbid');
         dBase.find(db_id,function(doc){
@@ -661,20 +784,33 @@ var app = {
         
     },
     getCompletedActivities: function(callback){
-        // pouch db map/reduce func: get objects of type 'activity' that have ended
+        /* PouchDB map/reduce function: get objects of type 'activity' that have ended
+                This is PouchDB's version of views - it doesn't store views. 
+                Pouch's query function works similarly to a temporary view in CouchDB
+        */
         map = function(doc) {
             if(doc.objtype == 'activity' && doc.end_time) {
-             emit(doc.start_time, {activity_name:doc.activity_name,
+                emit(doc.start_time, {activity_name:doc.activity_name,
                             activity_id:doc.activity_id,
                             activity_notes:doc.activity_notes,
                             start_time:doc.start_time,
                             end_time:doc.end_time,
-                            id:doc._id
+                            id:doc._id // should these both be _id? double check consistency
                         });
             }
         };
         dBase.db.query({map: map}, {reduce: false, descending:true}, function(err, response) { 
-            //console.log(response);
+            //app.debug(JSON.stringify(response));
+            callback(response);
+        });
+    },
+    getAllPhenotypesFromDB: function(){
+        map = function(doc){
+            if (doc.all_activities){
+                emit(doc.all_activities); //obj or array of all activities (populated in couchDB via Postgres sync)
+            }
+        };
+        dBase.db.query({map: map}, {reduce: false, descending:true}, function(err, response) { 
             //app.debug(JSON.stringify(response));
             callback(response);
         });
@@ -691,7 +827,6 @@ var app = {
             }
         };
         dBase.db.query({map: map}, {reduce: false}, function(err, response) { 
-            //console.log(response);
             callback(response);
         });
     },
@@ -708,7 +843,6 @@ var app = {
             }
         };
         dBase.db.query({map: map}, {reduce: false, descending:true}, function(err, response) { 
-            //console.log(response);
             callback(response);
         });
     },
@@ -759,18 +893,30 @@ var app = {
         app.debug('showing');
         dBase.db.all(function(r){app.debug(JSON.stringify(r))});
     },
+    setServerAddress: function (local,remote){
+        console.log('setServerAddress '+ local + remote);
+        if (local){
+            localStorage.setItem('localServerConfig',local);
+            dBase.localServer = local;
+        }
+        if (remote){
+            localStorage.setItem('remoteServerConfig',remote);
+            dBase.remoteServer = remote;
+        }
+    }
 };
 
 /*
 TODO: 
 == priorities ==
 
-- !data! IMPORTANT: get lists of activities from outside DB and/or config file (like w/ sightings) 
-            x-- make a buildActivityList func similar to buildSightings...
+x - !data! IMPORTANT: get lists of activities from outside DB and/or config file (like w/ sightings) 
+        (note: structure is set-up but data is hard-coded for now, will eventually come from an outside DB )
+x - make a buildActivityList func similar to buildSightings...
 - make phenotypes editable in "sighting log" section
 - show current sightings in progress at start-up (from local db) -- same as activities in progress
-- figure out storing procedure for list of activities in DB (addActivity func maybe) and see if you really need to store it in a property
-- location gps recording
+x - figure out storing procedure for list of activities in DB (addActivity func maybe) and see if you really need to store it in a property
+- location gps recording (future)
 
 - ** add census entry to sighting
 - (small) -- time inputs. <input type="time" value="14:02"/> will show time picker in whatever format the device is set to, 24 hr or 12 hr

@@ -14,6 +14,7 @@
         <div class="app">
 <!-- observer acvitity page -->
             <section id="activity" data-role="page" data-title="Observer Activity">
+
                 <div data-role="header" id="main_header">
                    
                 </div><!-- /header -->
@@ -31,7 +32,10 @@
                         <li data-actid="4"><a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow">Trapping</a></li> -->
                         
                     </ul>  
-                    <li data-role="listview"><a href="#new_activity" id="new_activity_btn" data-rel="popup" data-role="button" data-icon="plus">New Activity</a></li>      
+                    <li data-role="listview"><a href="#new_activity" id="new_activity_btn" data-rel="popup" data-role="button" data-icon="plus">New Activity</a></li>  
+
+                    <div class="sync_wrap"><p><a class="ui-btn ui-btn-inline" id="sync_btn">Sync</a></p></div>
+
                     <div id="new_activity" data-role="popup">
                         <label for="new_activity_field">New Activity</label>
                         <input type="text" id="new_activity_field" />
@@ -44,6 +48,7 @@
                     </div>
 
                 </div><!-- /main-->
+                
             </section>
 
             <!--sightings page -->
@@ -76,7 +81,7 @@
 
                         <label for="pheno_notes">Phenotype Notes</label>
                         <textarea cols="40" rows="6" name="pheno_notes" id="pheno_notes"></textarea>
-                        <a id="save_pheno_obs" data-role="button" data-rel="back" data-inline="true">Add to Sighting</a>
+                        <a id="save_pheno_obs" data-role="button" data-rel="back" data-inline="true">Save</a> 
                         
                     </div><!-- end pheno_obs -->
 
@@ -84,6 +89,7 @@
                         <h4>Phenotypes Recorded</h4>
                         <ul data-role="listview"></ul>
                     </div>
+                    
                 </div> <!-- /main -->
                 
                 <!-- <p>For debugging: <button id="reset">Reset</button></p> -->
@@ -175,8 +181,8 @@
                     <div id="msg"></div>
                     <p><!--<br/>For debugging: 
                         
-                        <a class="ui-btn ui-mini ui-btn-inline" id="reset">Reset DB</a>-->
-                        <a class="ui-btn ui-mini ui-btn-inline" id="sync_btn">Sync</a>
+                        <a class="ui-btn ui-mini ui-btn-inline" id="reset">Reset DB</a>
+                        <a class="ui-btn ui-mini ui-btn-inline" id="sync_btn">Sync</a>-->
                     </p>
                 </main><!-- /main -->
             </section> <!-- /activities log -->
@@ -184,12 +190,14 @@
 
             <!-- dynamic menu: main header -->
             <script id="header_tpl" type="text/x-handlebars-template">
-                <div data-role="navbar" class="main_nav">
+                
+                <div data-role="navbar" class="main_nav" id="main_nav">
                     <ul>
                         <li><a href="#activity" data-icon="clock">Observer Activity Log</a></li>
                         <li><a href="#sightings" data-icon="eye">Sightings</a></li>
                     </ul>     
                 </div> 
+                <a href="#config" id="config_btn" data-icon="gear" data-iconpos="notext">Config</a>
                 <div class="status_bar ui-bar ui-bar-b" >&nbsp;</div>
              </script> <!--/main header tpl -->
 
@@ -210,6 +218,19 @@
             </div>
             </script><!-- /activities menu tpl -->
 
+            <!-- config panel -->
+                <div data-role="panel" data-position="left" data-display="overlay" data-theme="a" id="config">
+                    <form class="server_config_form">
+                        <p><br/></p>
+                        <label for="local_server">Local Server</label>
+                        <input type="text" name="local_server" id="local_server" value="" data-clear-btn="true" data-mini="true">
+                        <label for="remote_server">Remote Server</label>
+                        <input type="text" name="remote_server" id="remote_server" value="" data-clear-btn="true" data-mini="true">
+                        <a href="#main_nav" data-rel="close" class="ui-btn ui-corner-all ui-shadow ui-icon-delete ui-btn-icon-notext ui-btn-right">Close panel</a>
+                        <!--<input type="submit" value="Save" id="save_server_config"/>-->
+                         <div class="ui-block-b"><a href="#" id="save_server_config" data-rel="close" class="ui-btn ui-shadow ui-corner-all ui-btn-a ui-mini">Save</a></div>
+                    </form>
+                </div><!-- /panel -->
             
             </div> <!-- end .app -->
             
@@ -224,7 +245,7 @@
         <script type="text/javascript" src="js/lib/handlebars.js"> </script>
         <!--<script type="text/javascript" src="js/lib/jqm-datebox/jqm-datebox-1.1.0.core.js"> </script>
         <script type="text/javascript" src="js/lib/jqm-datebox/jqm-datebox-1.1.0.mode.datebox.js"> </script>-->
-        <script type="text/javascript" src="js/db.js"></script>
+        <script type="text/javascript" src="js/dBase.js"></script>
         <script type="text/javascript" src="js/studyData.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript">
