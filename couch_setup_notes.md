@@ -21,6 +21,13 @@ For reference, here is documentation on CouchDB config:
 
 6. On your Mac, go to Futon (the GUI interface for CouchDB) at localhost:5984/_utils and create a new database. Name it whatever you like. In the testing phases, I've been naming with a number to indicate a version, using the date, eg, "zambia415" on April 15, but use any convention you like. 
 
+7. If you have trouble syncing, you may need to set up CORS. More information about that is here: http://pouchdb.com/getting-started.html (Scroll to "CORS"). If you are running Couch locally, you may not need a username and password, so the curl commands are slightly different. Use:
+	export HOST=127.0.0.1:5984
+	curl -X PUT $HOST/_config/httpd/enable_cors -d '"true"'
+	curl -X PUT $HOST/_config/cors/origins -d '"*"'
+	curl -X PUT $HOST/_config/cors/methods -d '"GET, PUT, POST, HEAD, DELETE"'
+	curl -X PUT $HOST/_config/cors/headers -d \ '"accept, authorization, content-type, origin"'
+
 #### In the PhoneGap files
 In the main index.js file of the PhoneGap project (www/js/index.js) find the "initData" function (line 21 as of this writing). The database is initialized with these lines:
 

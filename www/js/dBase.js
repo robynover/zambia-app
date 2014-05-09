@@ -15,8 +15,8 @@ var dBase = {
 		}
 		// for future: if you needed to split the base URL and the name of the db for local and remote servers
 		// ie, 'http://myhost.com:5984/mydb' vs. 'http://myhost.com:5984'
-		if (opts.local_dbname){}
-		if (opts.remote_dbname){}
+		/*if (opts.local_dbname){}
+		if (opts.remote_dbname){}*/
 	},
 	all: function(callback){ //takes a callback function in order to return records
 		this.db.allDocs({include_docs: true},  
@@ -55,8 +55,11 @@ var dBase = {
 	},
 	couchSync: function(dir){ 
 		// direction options: TO_REMOTE, FROM_REMOTE, TO_LOCAL, FROM_LOCAL
+		console.log('server info from sync func: local storage: '+ localStorage.getItem('localServerConfig') + ' server: '+ dBase.localServer);
+
 		if (!dir){dir = this.TO_LOCAL;}
 		var opts = {continuous: false, complete:function(err,res){
+											//alert('opts func called!');
 											if (err){
 												err_msg = '';
 												for (e in err){
@@ -64,8 +67,12 @@ var dBase = {
 												}
 												// this is a crude debugging tactic for now
 												alert('Sync error.  ' + err_msg); 
+												console.log('response '+JSON.stringify(res));
+												console.log('error ' + err_msg);
 											} else {
 												alert('Sync successful');
+												console.log('response '+JSON.stringify(res));
+												console.log('error ' + JSON.stringify(err));
 											}
 											/*app.debug('<h2>Error</h2>');
 											app.debug(JSON.stringify(err));
@@ -84,8 +91,10 @@ var dBase = {
 				break;
 
 			case this.TO_LOCAL:
+				//alert('to local address: '+this.localServer);
 				alert('to local');
 				this.db.replicate.to(this.localServer, opts);
+				//this.db.replicate.to('192.168.1.5:5984/mynewcouch', opts);
 				break;
 
 			case this.FROM_LOCAL:

@@ -6,7 +6,9 @@
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
         <link rel="stylesheet" type="text/css" href="css/index.css" />
+        
         <link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.2.min.css" />
+        
         <!--<link rel="stylesheet" type="text/css" href="css/jqm-datebox-1.1.0.css" />-->
         <title>Ethoinformatics</title>
     </head>
@@ -14,10 +16,7 @@
         <div class="app">
 <!-- observer acvitity page -->
             <section id="activity" data-role="page" data-title="Observer Activity">
-
-                <div data-role="header" id="main_header">
-                   
-                </div><!-- /header -->
+                <div data-role="header" id="main_header" data-position="fixed"></div><!-- /header -->
                 <div role="main" class="ui-content">
                     <div class = "activities_menu"></div> <!--template content goes here -->
                     <div id="current_activity_records">
@@ -34,7 +33,7 @@
                     </ul>  
                     <li data-role="listview"><a href="#new_activity" id="new_activity_btn" data-rel="popup" data-role="button" data-icon="plus">New Activity</a></li>  
 
-                    <div class="sync_wrap"><p><a class="ui-btn ui-btn-inline" id="sync_btn">Sync</a></p></div>
+
 
                     <div id="new_activity" data-role="popup">
                         <label for="new_activity_field">New Activity</label>
@@ -48,6 +47,15 @@
                     </div>
 
                 </div><!-- /main-->
+                <div data-role="footer" data-position="fixed" data-theme="b">
+                        <!--<div data-role="navbar">
+                            <ul>
+                                <li><a id="sync_btn" data-icon="arrow-u">Push to Local</a></li>
+                                <li><a id="" data-icon="arrow-d">Pull from Local</a></li>
+                                <li><a data-icon="cloud" >Save to Cloud</a></li>       
+                            </ul>
+                        </div>--><!-- /navbar -->
+                </div>
                 
             </section>
 
@@ -92,7 +100,7 @@
                     
                 </div> <!-- /main -->
                 
-                <!-- <p>For debugging: <button id="reset">Reset</button></p> -->
+                <div data-role="footer" data-position="fixed" data-theme="b"></div> <!-- footer content added with template -->
             </section>
 
             <!-- sightings log page -->
@@ -134,6 +142,7 @@
                         <a href="#" id="update_sighting_btn" class="ui-btn ui-corner-all ui-icon-check ui-btn-inline ui-btn-icon-left">Update</a>
                     </script> <!--end template-->
                 </div> <!-- / main-->
+                <div data-role="footer" data-position="fixed" data-theme="b"></div> <!-- footer content added with template -->
             </section>
             <!-- /sightings log -->
 
@@ -177,33 +186,25 @@
                         <a href="#" id="update_activity_btn" class="ui-btn ui-corner-all ui-icon-check ui-btn-inline ui-btn-icon-left">Update</a>
                     </script>
 
-                    <hr/>
-                    <div id="msg"></div>
-                    <p><!--<br/>For debugging: 
-                        
-                        <a class="ui-btn ui-mini ui-btn-inline" id="reset">Reset DB</a>
-                        <a class="ui-btn ui-mini ui-btn-inline" id="sync_btn">Sync</a>-->
-                    </p>
+                   
                 </main><!-- /main -->
+                <div data-role="footer" data-position="fixed" data-theme="b"></div> <!-- footer content added with template -->
             </section> <!-- /activities log -->
 
 
             <!-- dynamic menu: main header -->
             <script id="header_tpl" type="text/x-handlebars-template">
                 
-                <div data-role="navbar" class="main_nav" id="main_nav">
-                    <ul>
-                        <li><a href="#activity" data-icon="clock">Observer Activity Log</a></li>
-                        <li><a href="#sightings" data-icon="eye">Sightings</a></li>
-                    </ul>     
-                </div> 
-                <a href="#config" id="config_btn" data-icon="gear" data-iconpos="notext">Config</a>
-                <div class="status_bar ui-bar ui-bar-b" >&nbsp;</div>
+                <a href="#menu_panel" id="menu_panel_btn" data-icon="bars" data-iconpos="notext">Config</a>
+                <a href="#config" id="config_panel_btn" data-icon="gear" data-iconpos="notext">Config</a>
+                <h1>Ethoinformatics</h1>
+                
+                <div class="status_bar ui-bar" >&nbsp;</div>
              </script> <!--/main header tpl -->
 
             <!-- dynamic menu: activities section -->
             <script id="activities_menu_tpl" type="text/x-handlebars-template">
-            <div data-role="controlgroup" data-type="horizontal">
+            <div data-role="controlgroup" data-type="horizontal" data-corners="false">
                 <!--<a href="#new_activity" class="ui-btn ui-corner-all">New Activity</a>-->
                 <a href="#activity" class="ui-btn ui-corner-all {{current}}">Current Activities</a>
                 <a href="#activity_log" class="ui-btn ui-corner-all {{completed}}">Completed Activities</a>    
@@ -212,25 +213,47 @@
 
             <!-- dynamic menu: sightings section -->
             <script id="sightings_menu_tpl" type="text/x-handlebars-template">
-            <div data-role="controlgroup" data-type="horizontal">
+            <div data-role="controlgroup" data-type="horizontal" data-corners="false">
                 <a href="#sightings" data-role="button" class="ui-btn ui-corner-all {{current}}">Current Sighting</a>
                 <a href="#sightings_log" data-role="button" class="ui-btn ui-corner-all {{completed}}">Sightings Log</a>    
             </div>
-            </script><!-- /activities menu tpl -->
+            </script><!-- /sightings menu tpl -->
+
+            <!-- menu panel -->
+                <div data-role="panel" data-position="left" data-display="push" data-theme="a" id="menu_panel">
+                    <ul id="panel_list" data-role="listview" data-theme="a" >
+                        <li><a href="#activity" data-icon="clock" class="ui-btn ui-icon-clock ui-btn-icon-left">Observer Activity Logs</a></li>
+                        <li><a href="#sightings" data-icon="eye" class="ui-btn ui-icon-eye ui-btn-icon-left">Sightings</a></li>
+                    </ul>
+                </div>
+            <!-- /menu panel -->
 
             <!-- config panel -->
-                <div data-role="panel" data-position="left" data-display="overlay" data-theme="a" id="config">
+                <div data-role="panel" data-position="right" data-display="push" data-theme="a" id="config">
+                     <h3>Set Servers</h3>
                     <form class="server_config_form">
-                        <p><br/></p>
                         <label for="local_server">Local Server</label>
                         <input type="text" name="local_server" id="local_server" value="" data-clear-btn="true" data-mini="true">
                         <label for="remote_server">Remote Server</label>
                         <input type="text" name="remote_server" id="remote_server" value="" data-clear-btn="true" data-mini="true">
-                        <a href="#main_nav" data-rel="close" class="ui-btn ui-corner-all ui-shadow ui-icon-delete ui-btn-icon-notext ui-btn-right">Close panel</a>
+                        <!--<a href="#main_nav" data-rel="close" class="ui-btn ui-corner-all ui-shadow ui-icon-delete ui-btn-icon-notext ui-btn-right">Close panel</a>-->
                         <!--<input type="submit" value="Save" id="save_server_config"/>-->
-                         <div class="ui-block-b"><a href="#" id="save_server_config" data-rel="close" class="ui-btn ui-shadow ui-corner-all ui-btn-a ui-mini">Save</a></div>
+                         <div class="ui-block-b"><a href="#" id="save_server_config" data-rel="close" class="ui-btn ui-shadow ui-corner-all ui-btn-a ">Save</a></div>
                     </form>
-                </div><!-- /panel -->
+                </div><!-- /config panel -->
+
+                <!-- footer template -->
+                <script id="footer_tpl" type="text/x-handlebars-template">
+                    <div data-role="navbar">
+                            <ul>
+                                <li><a id="sync_btn" data-icon="arrow-u">Push to Local</a></li>
+                                <li><a id="" data-icon="arrow-d">Pull from Local</a></li>
+                                <li><a data-icon="cloud" >Save to Cloud</a></li>       
+                            </ul>
+                        </div><!-- /navbar -->
+
+                </script>
+                <!-- /footer -->
             
             </div> <!-- end .app -->
             
@@ -240,7 +263,7 @@
 
         <!--<script type="text/javascript" src="js/lib/pouchdb-nightly.min.js"></script>-->
         <!-- new version of pouchdb! -->
-        <script type="text/javascript" src="js/lib/pouchdb-2.1.0.min.js"></script>
+        <script type="text/javascript" src="js/lib/pouchdb-2.2.0.min.js"></script>
         <script type="text/javascript" src="js/lib/moment.min.js"> </script>
         <script type="text/javascript" src="js/lib/handlebars.js"> </script>
         <!--<script type="text/javascript" src="js/lib/jqm-datebox/jqm-datebox-1.1.0.core.js"> </script>

@@ -1,12 +1,5 @@
-
-#timer_status{
-    padding: 1em;
-}
-#timer_status.on{
-    background-color: #CBEDBB;
-}
-#timer_status.off{
-    background-color: #EDBBC7;
+*{
+    text-shadow:none !important;
 }
 .stopped{
     /*background-color: #EDBBC7;*/
@@ -119,6 +112,10 @@ a:hover.activity_edit_text{
 .status_bar,.status_bar.ui-bar-b{
     font-weight: normal;
     text-shadow:none;
+   background-color: #F4F4F4; /*#99cc00; #b6db49*/
+    border-bottom: 3px solid #99cc00;
+    border-top: 1px solid #ccc;
+    color: #373737;
 }
 textarea{
     /*width:100%;
@@ -149,10 +146,21 @@ div[data-role="popup"]{
     /*margin-top: 3em;*/
     border-top: 1px solid #333;
     width: 100%;
-    position: absolute;
-    bottom:0;
+    /*position: absolute;
+    bottom:0;*/
 }
-#config_btn{
-   /* z-index: 99999;*/
-   float:right;
+#menu_panel_btn{
+   float:left;
+   position: relative;
+   margin-left: 1em;
 }
+ #config_panel_btn{
+    float:right;
+   position: relative;
+   margin-right: 1em;
+ }
+ div[data-role="footer"] a{
+    padding-bottom: 1em;
+    font-weight: normal !important;
+}
+

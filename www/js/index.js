@@ -10,6 +10,7 @@ var app = {
     date_only_format: "YYYY-MM-DD",
     all_phenotypes : {}, //initial set of phenotypes
     //current_avail_phenotypes: {},// holds the phenotypes available for each sighting
+    current_geoloc : false, //the current geolocation when it was last checked
    
     // Application Constructor
     initialize: function() {
@@ -28,11 +29,12 @@ var app = {
         var rserver = localStorage.getItem('remoteServerConfig');
         console.log('SERVERS: Local: ' + lserver+ ' | Remote: ' + rserver);
         //console.log(localStorage);
-        if (!lserver){lserver = 'http://128.122.6.170:5984/anything';}
+        if (!lserver){lserver = 'http://192.168.1.5:5984/mynewcouch';}
         if (!rserver){rserver = 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia415';}
         // DATABASE: new PouchDB instance
         dBase.init('myzambia423',{ // the name of the pouchDB database, local to the device
-            local: lserver,
+            //local: lserver,
+            local: 'http://192.168.1.5:5984/mynewcouch',
             remote: rserver
         });
         // APP DATA
@@ -43,40 +45,23 @@ var app = {
         // use: this.getAllPhenotypesFromDB();
         app.current_sighting.sighting_phenotypes = []; // sets the datatype of property to Array
         app.all_activities = studyData.all_activities; //initialize the starting set of available activities
-
-        //app.makePhenotypeSelect();
     },
     // Bind Event Listeners
     bindEvents: function() {
         /*if (navigator.userAgent.match(/(Mozilla)/)){ // if this is a reg browser (for debugging)
-            console.log('browser');
             $(document).ready(this.onDeviceReady());                 
         } else {
             document.addEventListener('deviceready', this.onDeviceReady, false);
         } */  
         document.addEventListener('deviceready', this.onDeviceReady, false);
+        $( window ).on( "pagechange",this.pageChangeListener);
+        // Note: use .on() instead of .bind() to apply to elements added dynamically later
+        // --- activities ---
         // when activity is chosen from list
         $('#obs_activity_list').on('click','li',this.startObsActivityListener);
         // "new activity" button in activity list
         $('#new_act_btn').bind('click',this.newActivityListener);
-
-        $('#sighting_time').bind('click',this.trackSightingTime);
-         
-        $('#add_pheno_btn').bind('click',this.makePhenotypeSelect);
-        $('#pheno_obs_records').on('click','.phenotype_edit_btn',this.makePhenotypeSelect);
-        $( window ).on( "pagechange",this.pageChangeListener);
         $('#activity_notes_done_btn').bind('click', this.addActivityNotes);
-        //$('#pheno_obs').on('click','#save_pheno_obs',this.savePhenotypeToSighting);
-        $('#pheno_obs').on('click','#save_pheno_obs',this.addPhenotypeListener);
-        $('#pheno_obs').on('change','#phenotype_select',this.phenoSelectListener);
-        
-        // edit phenotype 
-        $("#pheno_obs_records").on('click','a.phenotype_edit_btn',this.setUpEditPhenoForm);
-        /*$( "#edit_phenotype_record" ).popup({
-              beforeposition: this.setUpEditPhenoForm
-            });*/
-
-        // Note: use .on() instead of .bind() to apply to elements added dynamically later
         $('#current_activity_records').on('click','.activity_edit_btn',function(){ //todo: save to named function
             //attach record id to activity notes form
             rid = $(this).attr('data-recordid');
@@ -91,12 +76,20 @@ var app = {
         $('#activity_detail').on('click','.edit_activity_end',function(){$('#activity_end_input').toggle()});
         $('#activity_detail').on('click','#update_activity_btn',this.updateObsActivityListener);
          
-        //sightings
+
+        // --- sightings & phenotypes ---
+        $('#sighting_time').bind('click',this.trackSightingTime);
+        $('#add_pheno_btn').bind('click',this.makePhenotypeSelect);
+        $('#pheno_obs_records').on('click','.phenotype_edit_btn',this.makePhenotypeSelect);
+        $('#pheno_obs').on('click','#save_pheno_obs',this.addPhenotypeListener);
+        $('#pheno_obs').on('change','#phenotype_select',this.phenoSelectListener);
+        // edit phenotype 
+        $("#pheno_obs_records").on('click','a.phenotype_edit_btn',this.setUpEditPhenoForm);
         $('ul.sightings').on('click','.sighting_item',app.buildSightingDetailPg);
         $('#sighting_detail').on('click','.edit_sighting_start',function(){$('#sighting_start_input').toggle()});
         $('#sighting_detail').on('click','.edit_sighting_end',function(){$('#sighting_end_input').toggle()});
         $('#sighting_detail').on('click','#update_sighting_btn',this.updateSightingListener);
-     
+
         // debug
         //$('#reset').bind('click',this.resetDB);
         $('#sync_btn').bind('click',this.syncDebug);
@@ -104,8 +97,11 @@ var app = {
         // server config
         $('#save_server_config').on('click',this.setServerListener);
 
-        // geolocation (for future dev)
-        // var watchID = navigator.geolocation.watchPosition(onSuccess, onError, { frequency: 3000 });
+        // geolocation 
+        geoOptions = { maximumAge: 0, timeout: 30000, enableHighAccuracy: true };
+        var watchID = navigator.geolocation.watchPosition(app.onGeoSuccess,app.onGeoError,geoOptions);
+        // for ref: navigator.geolocation.clearWatch(watchID);
+
     },
     // deviceready Event Handler
     onDeviceReady: function() {
@@ -117,13 +113,15 @@ var app = {
                                 'min-height':$(window).height() * .75,
                                 'padding':'1em'
                             });   
-
     },
     setUpUI: function(){
         /* -- templates -- */
         // attach headers template
         _header_tpl = Handlebars.compile($('#header_tpl').html());
         $('[data-role="header"]').html(_header_tpl());
+
+        _footer_tpl = Handlebars.compile($('#footer_tpl').html());
+        $('[data-role="footer"]').html(_footer_tpl());
         // menus
         _activites_menu_tpl = Handlebars.compile($('#activities_menu_tpl').html()); //local var bc content is not dynamic
         // could/should be dynamic in future. building menus on 2 pages separately to set ui-active
@@ -138,8 +136,10 @@ var app = {
         app.sighting_detail_tpl = Handlebars.compile($("#sighting_detail_tpl").html());
         app.activity_detail_tpl = Handlebars.compile($("#activity_detail_tpl").html());
 
-        // initialize config panel (so it will work across pages)
+        // manually initialize panels (so they will work across pages)
         $("#config").panel();
+        $("#menu_panel").panel();
+        $("#panel_list").listview();
         
         // initial list of activity choices
         app.buildAllActivitiesList();
@@ -339,6 +339,33 @@ var app = {
         $("#pheno_obs").popup('open');
         //clear currently_editing
         app.sighting_phenotype_currently_editing = {};
+    },
+    onGeoSuccess: function(pos){
+        console.log('geo success');
+        //alert('geoloc: '+ pos.coords.latitude + ',' + pos.coords.longitude);
+        // add to db (have to copy var; pouch doesn't allow clone & passing directly with pos obj)
+        geoObj = {};
+        geoObj.objtype = 'location_track';
+        // adding loc properties manually for compatibility with couch
+        geoObj.timestamp = pos.timestamp;
+        geoObj.latitude = pos.coords.latitude;
+        geoObj.longitude = pos.coords.longitude; 
+        geoObj.altitude = pos.coords.altitude;
+        geoObj.accuracy = pos.coords.accuracy;
+        geoObj.altitudeAccuracy = pos.coords.altitudeAccuracy; 
+        geoObj.heading = pos.coords.heading;
+        geoObj.speed = pos.coords.speed;
+
+        dBase.add(geoObj,function(results){
+            console.log('saved pos to (device) db');
+            app.current_geoloc = geoObj;
+        });
+
+    },
+    onGeoError: function(error){
+        console.log('+++++++++++ geo error ++++++++++++++++');
+        console.log(JSON.stringify(error));
+        //alert('geolocation unsuccessful');
     },
 
     // ------- / end listeners ----------
@@ -582,7 +609,7 @@ var app = {
     // ------------- UI --------------
     makePhenotypeSelect: function(){
         //$('#phenotype_select').html('<option value=""></option>');
-        console.log('makePhenotypeSelect');
+        //console.log('makePhenotypeSelect');
         $('#phenotype_select').html('');
         /*for (p in app.current_avail_phenotypes){
             $('#phenotype_select').append('<option value="'+ p +'">'+ app.current_avail_phenotypes[p] + '</option>');
@@ -640,7 +667,9 @@ var app = {
                 app.addActivityRecordLi(doc.activity_name,doc.id,doc.start_time);
             }
             ct = rows.length;
-            $('.status_bar').html( '<b>'+ct + '</b> Activities in Progress');
+            noun = 'Activities'
+            if (ct == 1){noun = 'Activity';}
+            $('.status_bar').html( '<b>'+ct + '</b> '+ noun +' in Progress');
         });
     },
     buildAllActivitiesList:function(){
@@ -753,6 +782,11 @@ var app = {
     // Database
     saveObsActivity: function(obsActivityObj,callback){
         obsActivityObj.objtype = 'activity';
+        // if a geoloc has not been set already and there is geo info, set to current location
+        if (app.current_geoloc && !obsActivityObj.geoloc){
+            myloc = app.current_geoloc; //that weird cloning thing with couchDB again
+            obsActivityObj.geoloc = myloc;
+        }
         // if this is an existing activity
         if (obsActivityObj._id && obsActivityObj._rev){
             dBase.update(obsActivityObj,function(results){
@@ -768,6 +802,11 @@ var app = {
     },
     saveSighting: function(sightingObj,callback){
         sightingObj.objtype = 'sighting';
+        // if a geoloc has not been set already and there is geo info, set to current location
+        if (app.current_geoloc && !sightingObj.geoloc){
+            myloc = app.current_geoloc; // that weird cloning thing with couchDB again
+            sightingObj.geoloc = myloc;
+        }
         // if this is an existing sighting
         if(sightingObj._id && sightingObj._rev){
             dBase.update(sightingObj,function(results){
@@ -887,6 +926,12 @@ var app = {
     syncDebug: function(){
         //dBase.couchSync(dBase.TO_REMOTE);
         dBase.couchSync(dBase.TO_LOCAL);
+        // one more try for geoloc!
+        locOptions = {
+            timeout : 5000,
+            enableHighAccuracy : true
+          };
+        navigator.geolocation.getCurrentPosition(app.onGeoSuccess,app.onGeoError,locOptions);
     },
     showDebugRecords: function () {
         alert('show');
@@ -894,14 +939,16 @@ var app = {
         dBase.db.all(function(r){app.debug(JSON.stringify(r))});
     },
     setServerAddress: function (local,remote){
-        console.log('setServerAddress '+ local + remote);
+        console.log('setServerAddress local: '+ local +', remote: ' + remote);
         if (local){
             localStorage.setItem('localServerConfig',local);
             dBase.localServer = local;
+            alert('Local server set to ' + localStorage.getItem('localServerConfig'));
         }
         if (remote){
             localStorage.setItem('remoteServerConfig',remote);
             dBase.remoteServer = remote;
+            alert('Remote server set to ' + localStorage.getItem('remoteServerConfig'));
         }
     }
 };
