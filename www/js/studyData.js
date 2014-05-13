@@ -4,20 +4,28 @@ var studyData = {
 	//default values
 	//all_activities: {1:'Sleeping',2:'Searching for groups',3:'Driving',4:'Trapping'},
   all_activities: [
-    'Traveling (vehicle)',
-    'Surveying (vehicle)',
-    'Surveying (foot)',
-    'Searching/tracking (vehicle)',
-    'Searching/tracking (foot)',
+    'Traveling by vehicle',
+    'Surveying in vehicle',
+    'Surveying on foot',
+    'Searching/tracking in vehicle',
+    'Searching/tracking on foot',
     'Observing',
-    'Captures (darting)',
-    'Captures (trapping)',
-    'Captures (processing)',
-    'Camp (personal)',
-    'Camp (cooking)',
-    'Camp (labwork)',
-    'Camp (data entry)'
+    'Captures: darting',
+    'Captures: trapping',
+    'Captures: processing',
+    'Camp: personal',
+    'Camp: cooking',
+    'Camp: labwork',
+    'Camp: data entry'
   ],
+  all_activities_test: {
+    'Traveling':[],
+    'Surveying':['vehicle','foot'],
+    'Searching/tracking':['vehicle','foot'],
+    'Observing':[],
+    'Captures':['darting','trapping','processing'],
+    'Camp':['personal','cooking','labwork','data entry']
+  },
 
 	all_phenotypes: {1:'light muzzle',2:'mohawk',3:'small pink swelling'}
 

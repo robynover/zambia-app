@@ -11,6 +11,9 @@ var app = {
     all_phenotypes : {}, //initial set of phenotypes
     //current_avail_phenotypes: {},// holds the phenotypes available for each sighting
     current_geoloc : false, //the current geolocation when it was last checked
+    watchID: false,
+    geoWatchInterval: 30, //sec
+    geoOptions: { maximumAge: 30000000, timeout: 30000000, enableHighAccuracy: true },
    
     // Application Constructor
     initialize: function() {
@@ -28,15 +31,25 @@ var app = {
         var lserver = localStorage.getItem('localServerConfig');
         var rserver = localStorage.getItem('remoteServerConfig');
         console.log('SERVERS: Local: ' + lserver+ ' | Remote: ' + rserver);
+
         //console.log(localStorage);
-        if (!lserver){lserver = 'http://192.168.1.5:5984/mynewcouch';}
-        if (!rserver){rserver = 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia415';}
+        if (!lserver){
+            lserver = 'http://192.168.1.5:5984/fridaypm';   
+        }
+        if (!rserver){
+            rserver = 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/zambia415';    
+        }
+        // prepopulate the server values in the server config form
+        $('form.server_config_form #local_server').val(lserver); 
+        $('form.server_config_form #remote_server').val(rserver);
         // DATABASE: new PouchDB instance
-        dBase.init('myzambia423',{ // the name of the pouchDB database, local to the device
-            //local: lserver,
-            local: 'http://192.168.1.5:5984/mynewcouch',
+        dBase.init('zambia509',{ // the name of the pouchDB database, local to the device
+            local: lserver,
+            //local: 'http://192.168.1.5:5984/fridaypm', //debug - hard coding it
             remote: rserver
         });
+        
+
         // APP DATA
         // todo: check pouchDB for most recent version of data, and only use studyData if it's not available
         app.all_phenotypes = studyData.all_phenotypes; //initialize the starting set of phenotypes
@@ -70,6 +83,8 @@ var app = {
                 $('#activity_notes_field').val(doc.activity_notes);
             });
         });
+        //$('#current_activity_records').on('click','.activity_edit_btn',app.buildInProgressActivityDetailPop);
+        //$('#current_activity_records li').on('click',app.buildActivityDetailPg);
         $('ul.activities').on('click','.activity_item',app.buildActivityDetailPg);
         $('#current_activity_records').on('click','.activity_stop_btn',app.stopActivityBtnListener);
         $('#activity_detail').on('click','.edit_activity_start',function(){$('#activity_start_input').toggle()});
@@ -92,19 +107,23 @@ var app = {
 
         // debug
         //$('#reset').bind('click',this.resetDB);
-        $('#sync_btn').bind('click',this.syncDebug);
+        $('.sync_local').bind('click',this.syncDebug);
 
         // server config
         $('#save_server_config').on('click',this.setServerListener);
 
-        // geolocation 
-        geoOptions = { maximumAge: 0, timeout: 30000, enableHighAccuracy: true };
-        var watchID = navigator.geolocation.watchPosition(app.onGeoSuccess,app.onGeoError,geoOptions);
+        //geolocation config
+        $('#geoloc_btn').on('click',this.toggleLocTracking);
+
+        // geolocation data
+        //geoOptions = { maximumAge: 30000000, timeout: 30000000, enableHighAccuracy: true };
+        app.watchID = navigator.geolocation.watchPosition(app.onGeoSuccess,app.onGeoError,app.geoOptions);
         // for ref: navigator.geolocation.clearWatch(watchID);
 
     },
     // deviceready Event Handler
     onDeviceReady: function() {
+        
         //alert('device ready');
         //app.debug('device ready');
         // set size of pop-ups to fill (most of) screen
@@ -139,7 +158,10 @@ var app = {
         // manually initialize panels (so they will work across pages)
         $("#config").panel();
         $("#menu_panel").panel();
+        $("#geoloc_config").panel(); 
         $("#panel_list").listview();
+        //$( "#geoloc_switch" ).flipswitch(); //initialize
+        //$( "#geoloc_switch" ).flipswitch( "refresh" );
         
         // initial list of activity choices
         app.buildAllActivitiesList();
@@ -292,7 +314,7 @@ var app = {
             /* change the li value <-- you could do this and not reload from DB, but it won't update the sort order
             new_content = 'start: ' + moment(app.sighting_currently_editing.start_time).format(app.time_only_format);
             new_content += ' end: ' + moment(app.sighting_currently_editing.end_time).format(app.time_only_format);
-            $("a[data-dbid='"+ app.sighting_currently_editing._id +"']").text(new_content);
+            $("a[db-recordid='"+ app.sighting_currently_editing._id +"']").text(new_content);
             */
             app.buildSightingsList();
         });
@@ -341,25 +363,28 @@ var app = {
         app.sighting_phenotype_currently_editing = {};
     },
     onGeoSuccess: function(pos){
-        console.log('geo success');
-        //alert('geoloc: '+ pos.coords.latitude + ',' + pos.coords.longitude);
-        // add to db (have to copy var; pouch doesn't allow clone & passing directly with pos obj)
-        geoObj = {};
-        geoObj.objtype = 'location_track';
-        // adding loc properties manually for compatibility with couch
-        geoObj.timestamp = pos.timestamp;
-        geoObj.latitude = pos.coords.latitude;
-        geoObj.longitude = pos.coords.longitude; 
-        geoObj.altitude = pos.coords.altitude;
-        geoObj.accuracy = pos.coords.accuracy;
-        geoObj.altitudeAccuracy = pos.coords.altitudeAccuracy; 
-        geoObj.heading = pos.coords.heading;
-        geoObj.speed = pos.coords.speed;
+        console.log('+++++++++++ geo success ++++++++++++++++');
+        //console.log("current pos timestamp " +pos.timestamp  + " saved pos timestamp " + app.current_geoloc.timestamp + " interval "+app.geoWatchInterval);
+        // don't store unless it's been x number of seconds
+        if ( !app.current_geoloc || (pos.timestamp - app.current_geoloc.timestamp)  > (app.geoWatchInterval * 1000) ){
+            console.log("~~~~~~~~~~~~~~~SAVING GEO INFO~~~~~~~~~~~~~~~~~~");
+            geoObj = {};
+            geoObj.objtype = 'location_track';
+            // adding loc properties manually for compatibility with couch
+            geoObj.timestamp = pos.timestamp;
+            geoObj.latitude = pos.coords.latitude;
+            geoObj.longitude = pos.coords.longitude; 
+            geoObj.altitude = pos.coords.altitude;
+            geoObj.accuracy = pos.coords.accuracy;
+            geoObj.altitudeAccuracy = pos.coords.altitudeAccuracy; 
+            geoObj.heading = pos.coords.heading;
+            geoObj.speed = pos.coords.speed;
 
-        dBase.add(geoObj,function(results){
-            console.log('saved pos to (device) db');
-            app.current_geoloc = geoObj;
-        });
+            dBase.add(geoObj,function(results){
+                console.log('saved pos to (device) db');
+                app.current_geoloc = geoObj;
+            });
+        } 
 
     },
     onGeoError: function(error){
@@ -641,7 +666,7 @@ var app = {
                 //console.log(doc);
                 li_tag = $('<li></li>');
                 a_tag = $('<a></a>');
-                a_tag.attr({href:"#activity_detail",'data-dbid':doc.id});
+                a_tag.attr({href:"#activity_detail",'db-recordid':doc.id});
                 a_tag.addClass("activity_item ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left");
                 a_text = '<b>' + moment(doc.start_time).format(app.time_only_format);
                 a_text += ' &mdash; ' + moment(doc.end_time).format(app.time_only_format);
@@ -693,7 +718,7 @@ var app = {
                 //console.log(doc);
                 li_tag = $('<li></li>');
                 a_tag = $('<a></a>');
-                a_tag.attr({href:"#sighting_detail",'data-dbid':doc.id});
+                a_tag.attr({href:"#sighting_detail",'db-recordid':doc.id});
                 a_tag.addClass("sighting_item ui-btn ui-shadow ui-corner-all ui-icon-edit ui-btn-icon-left");
                 //li = '<li>' + edit_btn;
                 a_text = '<b>' + moment(doc.start_time).format(app.time_only_format);
@@ -716,7 +741,7 @@ var app = {
     */
     buildSightingDetailPg: function(){
         // the doc id is stored in a data attr in this <li>
-        db_id = $(this).attr('data-dbid'); 
+        db_id = $(this).attr('db-recordid'); 
         dBase.find(db_id,function(doc){
             // store this object so it can be updated on submit listener
             app.sighting_currently_editing = doc;
@@ -752,7 +777,10 @@ var app = {
             (this and the buildSightingDetail func could be combined in one. d.r.y.)
     */
     buildActivityDetailPg: function(){
-        db_id = $(this).attr('data-dbid');
+       
+        db_id = $(this).attr('db-recordid');
+        console.log('record '+ db_id);
+        console.log(this);
         dBase.find(db_id,function(doc){
             // store this object so it can be updated on submit listener
             app.activity_currently_editing = doc;
@@ -778,7 +806,6 @@ var app = {
             });
         });
     },
-
     // Database
     saveObsActivity: function(obsActivityObj,callback){
         obsActivityObj.objtype = 'activity';
@@ -924,14 +951,9 @@ var app = {
         //dBase.db = PouchDB('zambia');
     },
     syncDebug: function(){
+        //alert('debug clicked');
         //dBase.couchSync(dBase.TO_REMOTE);
         dBase.couchSync(dBase.TO_LOCAL);
-        // one more try for geoloc!
-        locOptions = {
-            timeout : 5000,
-            enableHighAccuracy : true
-          };
-        navigator.geolocation.getCurrentPosition(app.onGeoSuccess,app.onGeoError,locOptions);
     },
     showDebugRecords: function () {
         alert('show');
@@ -949,6 +971,26 @@ var app = {
             localStorage.setItem('remoteServerConfig',remote);
             dBase.remoteServer = remote;
             alert('Remote server set to ' + localStorage.getItem('remoteServerConfig'));
+        }
+    },
+    toggleLocTracking: function(){
+        // check value of the button to see if it's start or stop
+        // use data attr to track
+        // data-locstatus
+        //alert('track loc btn');
+        status = $(this).attr('data-locstatus');
+        if (status == "on"){
+            // turn off
+            alert('Location tracking off');
+            navigator.geolocation.clearWatch(app.watchID);
+            $(this).attr('data-locstatus','off');
+            $(this).html("Start");
+        } else {
+            //turn on
+            alert('Location tracking off');
+            app.watchID = navigator.geolocation.watchPosition(app.onGeoSuccess,app.onGeoError,app.geoOptions);
+            $(this).attr('data-locstatus','on');
+            $(this).html("Stop"); //change btn
         }
     }
 };

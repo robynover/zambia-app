@@ -41,7 +41,7 @@
                         <a href="#sighting" data-rel="back" data-role="button" data-theme="a" id="new_act_btn" >Start</a>
                     </div>
                     <div id="activity_notes" data-role="popup">
-                        <label for="activity_notes_field">Activity Notes</label>
+                        <h3>Activity Notes</h3>
                         <textarea cols="40" rows="6" id="activity_notes_field"></textarea>
                         <a href="#" data-rel="back" data-role="button" data-theme="a" id="activity_notes_done_btn">Done</a>
                     </div>
@@ -190,13 +190,15 @@
                 </main><!-- /main -->
                 <div data-role="footer" data-position="fixed" data-theme="b"></div> <!-- footer content added with template -->
             </section> <!-- /activities log -->
-
+            <section id="map" data-role="page"> <!--experimental, tracking coords on map -->
+                
+            </section>
 
             <!-- dynamic menu: main header -->
             <script id="header_tpl" type="text/x-handlebars-template">
                 
-                <a href="#menu_panel" id="menu_panel_btn" data-icon="bars" data-iconpos="notext">Config</a>
-                <a href="#config" id="config_panel_btn" data-icon="gear" data-iconpos="notext">Config</a>
+                <a href="#menu_panel" id="menu_panel_btn" data-icon="bars" data-iconpos="notext">Menu</a>
+                <!--<a href="#config" id="config_panel_btn" data-icon="gear" data-iconpos="notext">Config</a>-->
                 <h1>Ethoinformatics</h1>
                 
                 <div class="status_bar ui-bar" >&nbsp;</div>
@@ -224,31 +226,58 @@
                     <ul id="panel_list" data-role="listview" data-theme="a" >
                         <li><a href="#activity" data-icon="clock" class="ui-btn ui-icon-clock ui-btn-icon-left">Observer Activity Logs</a></li>
                         <li><a href="#sightings" data-icon="eye" class="ui-btn ui-icon-eye ui-btn-icon-left">Sightings</a></li>
+                        <li data-role="list-divider" role="heading" class="ui-li ui-li-divider ui-bar-b">Settings</li>
+                        <li><a href="#config" data-icon="gear" class="ui-btn ui-icon-gear ui-btn-icon-left">Servers</a></li>
+                        <li><a href="#geoloc_config" data-icon="navigation" class="ui-btn ui-icon-navigation ui-btn-icon-left">Location</a>
+                        <li data-role="list-divider" role="heading" class="ui-li ui-li-divider ui-bar-b">Sync</li>
+                        <li><a id="sync_btn" data-rel="close" class="sync_local ui-btn ui-icon-arrow-u ui-btn-icon-left" data-icon="arrow-u" >Save to Local</a></li>
+                        <li><a id="" data-rel="close" data-icon="arrow-d" class="ui-btn ui-icon-arrow-d ui-btn-icon-left">Pull from Local</a></li>
+                        <li><a data-icon="cloud" data-rel="close" class="ui-btn ui-icon-cloud ui-btn-icon-left">Save to Cloud</a></li>   
+                        </li>
                     </ul>
                 </div>
             <!-- /menu panel -->
 
             <!-- config panel -->
-                <div data-role="panel" data-position="right" data-display="push" data-theme="a" id="config">
+                <div data-role="panel" data-position="left" data-display="overlay" data-theme="a" id="config">
+                    <a href="#" data-rel="close" class="panel_back_btn ui-btn ui-corner-all ui-shadow ui-icon-carat-l ui-btn-icon-notext ui-btn-left">Close panel</a>
                      <h3>Set Servers</h3>
                     <form class="server_config_form">
                         <label for="local_server">Local Server</label>
                         <input type="text" name="local_server" id="local_server" value="" data-clear-btn="true" data-mini="true">
                         <label for="remote_server">Remote Server</label>
                         <input type="text" name="remote_server" id="remote_server" value="" data-clear-btn="true" data-mini="true">
-                        <!--<a href="#main_nav" data-rel="close" class="ui-btn ui-corner-all ui-shadow ui-icon-delete ui-btn-icon-notext ui-btn-right">Close panel</a>-->
+                        
                         <!--<input type="submit" value="Save" id="save_server_config"/>-->
                          <div class="ui-block-b"><a href="#" id="save_server_config" data-rel="close" class="ui-btn ui-shadow ui-corner-all ui-btn-a ">Save</a></div>
                     </form>
                 </div><!-- /config panel -->
 
+                <!-- location config panel -->
+                <div data-role="panel" data-position="left" data-display="overlay" data-theme="a" id="geoloc_config">
+                    <a href="#"data-rel="close" class="panel_back_btn ui-btn ui-corner-all ui-shadow ui-icon-carat-l ui-btn-icon-notext ui-btn-left">Close panel</a>
+                    <h3>Location</h3>
+                    <p>Track location in background</p>
+                    <button id="geoloc_btn" data-locstatus="on" class="ui-btn ui-shadow ui-corner-all ui-btn-a">Stop</button>
+                    <!--<fieldset>
+                      <div data-role="fieldcontain">
+                        <label for="geoloc_switch">Track location in background</label>
+                        <input type="checkbox" checked id="geoloc_switch" data-role="flipswitch">
+                      </div>
+                    </fieldset>-->
+                </div>
+                <!-- /location config panel -->
+
                 <!-- footer template -->
                 <script id="footer_tpl" type="text/x-handlebars-template">
                     <div data-role="navbar">
                             <ul>
-                                <li><a id="sync_btn" data-icon="arrow-u">Push to Local</a></li>
+                                <!--<li><a id="sync_btn" class="sync_local" data-icon="arrow-u">Push to Local</a></li>
                                 <li><a id="" data-icon="arrow-d">Pull from Local</a></li>
-                                <li><a data-icon="cloud" >Save to Cloud</a></li>       
+                                <li><a data-icon="cloud" >Save to Cloud</a></li>  --> 
+                                <li><a href="#activity" data-icon="clock" class="">Observer Activity Logs</a></li>
+                                <li><a href="#sightings" data-icon="eye" class="">Sightings</a></li>
+                            
                             </ul>
                         </div><!-- /navbar -->
 

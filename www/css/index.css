@@ -159,6 +159,9 @@ div[data-role="popup"]{
    position: relative;
    margin-right: 1em;
  }
+ .panel_back_btn{
+    position: relative !important;
+ }
  div[data-role="footer"] a{
     padding-bottom: 1em;
     font-weight: normal !important;

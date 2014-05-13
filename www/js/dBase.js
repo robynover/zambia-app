@@ -55,11 +55,10 @@ var dBase = {
 	},
 	couchSync: function(dir){ 
 		// direction options: TO_REMOTE, FROM_REMOTE, TO_LOCAL, FROM_LOCAL
-		console.log('server info from sync func: local storage: '+ localStorage.getItem('localServerConfig') + ' server: '+ dBase.localServer);
+		//console.log('server info from sync func: local storage: '+ localStorage.getItem('localServerConfig') + ' server: '+ dBase.localServer);
 
 		if (!dir){dir = this.TO_LOCAL;}
-		var opts = {continuous: false, complete:function(err,res){
-											//alert('opts func called!');
+		var opts = {live: false, complete:function(err,res){
 											if (err){
 												err_msg = '';
 												for (e in err){
@@ -69,10 +68,13 @@ var dBase = {
 												alert('Sync error.  ' + err_msg); 
 												console.log('response '+JSON.stringify(res));
 												console.log('error ' + err_msg);
+												$.mobile.loading( "hide" );
 											} else {
 												alert('Sync successful');
+												console.log('___________sync success_____________');
 												console.log('response '+JSON.stringify(res));
 												console.log('error ' + JSON.stringify(err));
+												$.mobile.loading( "hide" );
 											}
 											/*app.debug('<h2>Error</h2>');
 											app.debug(JSON.stringify(err));
@@ -82,7 +84,7 @@ var dBase = {
 										};
 		switch (dir){
 			case this.TO_REMOTE:
-				alert('to remote');
+				//alert('to remote');
 				this.db.replicate.to(this.remoteServer, opts); 
 				break;
 
@@ -91,8 +93,9 @@ var dBase = {
 				break;
 
 			case this.TO_LOCAL:
+				$.mobile.loading( "show" );
 				//alert('to local address: '+this.localServer);
-				alert('to local');
+				//alert('to local');
 				this.db.replicate.to(this.localServer, opts);
 				//this.db.replicate.to('192.168.1.5:5984/mynewcouch', opts);
 				break;
