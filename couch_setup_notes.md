@@ -37,11 +37,9 @@ Two options:
 
 1. *From the app itself:* Choose "Servers" in the slide-out menu, under the "Settings" section. Fill in the address, in the following format: http://IP_ADDRESS:5984/DATABASE_NAME, eg,'http://192.168.1.2:5984/zambia415'. You can disregard the "Remote" settings for now.
 
-2. *In PhoneGap Javascript files:* In the main index.js file of the PhoneGap project (www/js/index.js) find the "initData" function (line 21 as of this writing). The database is initialized with these lines:
-
-dBase.init('somename',{
+2. *In PhoneGap Javascript files:* In the main index.js file of the PhoneGap project (www/js/index.js) find the "initData" function (line 21 as of this writing). The database is initialized with these lines: 
+	dBase.init('somename',{
 	   local: 'http://192.168.1.2:5984/zambia415',
 	   remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/aname'
 	});
-
 Change the value for "local" to your IP and the name of the database you just created, eg,'http://192.168.1.2:5984/zambia415'. You can disregard "remote" for now.
