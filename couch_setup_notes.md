@@ -22,6 +22,7 @@ Note that the script has 2 dependent JSON files in the *couch_views* folder. Tha
 
 ### Troubleshooting
 It is unlikely you will need to do this when running Android in a local environment, but if you have trouble syncing, you may need to set up CORS. More information about that is here: http://pouchdb.com/getting-started.html (Scroll to "CORS"). If you are running Couch locally, you may not need a username and password, so the curl commands are slightly different than in the article. Use:
+
 	export HOST=127.0.0.1:5984
 	curl -X PUT $HOST/_config/httpd/enable_cors -d '"true"'
 	curl -X PUT $HOST/_config/cors/origins -d '"*"'
