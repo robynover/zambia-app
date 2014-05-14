@@ -1,0 +1,12 @@
+{
+   "_id": "_design/geo",
+   "language": "javascript",
+   "views": {
+       "location_by_time": {
+           "map": "function(doc) { if (doc.objtype == \"location_track\"){    emit(new Date(doc.timestamp), doc);  }}"
+       },
+       "location_sample": {
+           "map": "function(doc) { if (doc.objtype == \"location_track\" && doc.timestamp % 200 == 0){    emit(doc.timestamp, {latitude:doc.latitude,longitude:doc.longitude});  }}"
+       }
+   }
+}

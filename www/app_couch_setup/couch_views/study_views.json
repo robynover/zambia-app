@@ -1,0 +1,12 @@
+{
+   "_id": "_design/study",
+   "language": "javascript",
+   "views": {
+       "activities": {
+           "map": "function(doc) { if (doc.objtype == \"activity\"){    emit(doc.start_time, doc);  }}"
+       },
+       "sightings": {
+           "map": "function(doc) { if (doc.objtype == \"sighting\"){    emit(doc.start_time, doc);  }}"
+       }
+   }
+}
