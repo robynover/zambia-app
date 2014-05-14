@@ -809,6 +809,7 @@ var app = {
     // Database
     saveObsActivity: function(obsActivityObj,callback){
         obsActivityObj.objtype = 'activity';
+        console.log ("SAVING activity. GeoLoc is: " + JSON.stringify(app.current_geoloc));
         // if a geoloc has not been set already and there is geo info, set to current location
         if (app.current_geoloc && !obsActivityObj.geoloc){
             myloc = app.current_geoloc; //that weird cloning thing with couchDB again
@@ -829,6 +830,7 @@ var app = {
     },
     saveSighting: function(sightingObj,callback){
         sightingObj.objtype = 'sighting';
+        console.log ("SAVING sighting. GeoLoc is: " + JSON.stringify(app.current_geoloc));
         // if a geoloc has not been set already and there is geo info, set to current location
         if (app.current_geoloc && !sightingObj.geoloc){
             myloc = app.current_geoloc; // that weird cloning thing with couchDB again
