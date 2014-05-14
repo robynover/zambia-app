@@ -13,6 +13,7 @@ Confirm that Couch is running by visiting localhost:5984/_utils in a browser. Th
 4. Check the CouchDB configuration settings. In Futon, on the right sidbar, go to Tools > Configuration. Set the option "bind_address" (under "httpd") to "0.0.0.0" if it is not already set to that.
 
 5. Use the IP address from step #2 in your *mobile* browser, but add the port number, eg., 192.168.1.3:5984. If it works, you'll see a short JSON string, like:
+	
 	{"couchdb":"Welcome","uuid":"cdb49f94bfded984f5c7c38c6fef4ce4","version":"1.5.0","vendor":{"version":"1.5.0-1","name":"Homebrew"}}
 
 6. In the phonegap project, copy the folder *www/app_couch_setup* and put it on your local server -- MAMP or OSX's built-in server or whatever you are using. Open the PHP script *couch_setup.php* in a text editor and set the variable *$dbname* to whatever you like -- this will be the name of the new CouchDB database. Run the PHP script. 
@@ -37,9 +38,9 @@ Two options:
 
 2. *In PhoneGap Javascript files:* In the main index.js file of the PhoneGap project (www/js/index.js) find the "initData" function (line 21 as of this writing). The database is initialized with these lines:
 
-	dBase.init('somename',{
-		local: 'http://192.168.1.2:5984/zambia415',
-		remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/aname'
+dBase.init('somename',{
+	   local: 'http://192.168.1.2:5984/zambia415',
+	   remote: 'http://ec2-54-84-90-63.compute-1.amazonaws.com:5984/aname'
 	});
 
 Change the value for "local" to your IP and the name of the database you just created, eg,'http://192.168.1.2:5984/zambia415'. You can disregard "remote" for now.
