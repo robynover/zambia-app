@@ -1,0 +1,50 @@
+<!-- 
+	need to break out time (hrs + mins) into separate scope variables, 
+	and include one that indicates whether this is start or stop time.
+	then need to bring it back in and not lose the date part of the timestamp 
+	as a directive, this templ could do some of those calculations, and thus be easier to hook to a model
+-->
+<div class="time_options">
+	<p>
+	<!-- display -->
+	<label>{{timeLabel}}</label> <!-- start or end -->
+	{{obj.start_time | date: 'HH:mm'}}
+	</p>
+
+	<!-- button -->
+	<a ng-click="showTimeInput = ! showTimeInput" class="inline_edit_btn button">
+		edit time</a>
+	
+	<!-- input form -->
+	<div class="time_input" ng-show="showTimeInput"> 
+		<input id="hr"  type="number" value="{{hr}}"  ng-change:"updateTime();"> <b>:</b> 
+		<input id="min" type="number" value="{{min}}" ng-change:"updateTime();">
+	</div>	
+</div>
+
+<!-- 
+js snippet from old app:
+// for procedure, not code
+
+//1. remember orig datetime before it was changed
+orig_date = moment(app.sighting_currently_editing.start_time).format(app.date_only_format);
+
+//2. concatenate hr + min fields to get the new time, formatted 
+updated_start = $('#sighting_detail input#hr_start').val() + ':'+$('#sighting_detail input#min_start').val();
+//3. taking the date from the original datetime, concat with new time and process to Date()
+app.sighting_currently_editing.start_time = moment(orig_date + ' ' + updated_start).format(app.timestamp_format);
+
+
+// how to do this in angular?
+- Store the timestamp in uncorrupted way, so that changing time doesn't lose data:
+- From orig timestamp, extrapolate the hrs and mins into vars: $scope.hrs $scope.mins
+- when those are changed, run function that:
+		- takes the hours AND minutes (no matter which was just changed) and produces text time format, HH:mm
+		- takes the date part of the original timestamp and concats it with new time to get a new js Date object
+		- sets $scope.start_time (etc) to a timestamp of the js Date object
+
+... So: the timestamp is not directly wired to the inputs, but the inputs are wired to a function that updates the "REAL" timestamp accordingly
+
+
+
+ -->

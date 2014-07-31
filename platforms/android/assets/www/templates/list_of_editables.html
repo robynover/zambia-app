@@ -1,0 +1,33 @@
+<div class="list_page">
+	<div class="content_text_block" >
+		<h3 class="list_pg_title">{{title}}</h3>
+		<!-- <a href="#/{{path_to_new}}" class="list_pg_new_btn button icon-left ion-plus button-small ">New</a> -->
+		<!-- <div><p>[TABS: ALL | IN PROGRESS | COMPLETE] </p> -->
+		<div class="button-bar">
+		  <a href="#{{list_url}}/" class="button" ng-class=" {'button-dark': filterBy == 'all'}">All</a>
+		  <a href="#/{{list_url}}/inprogress" class="button" ng-class=" {'button-dark': filterBy == 'inprogress'}">In Progress</a>
+		  <a href="#/{{list_url}}/completed" class="button" ng-class=" {'button-dark': filterBy == 'completed'}">Complete</a>
+		</div>
+ 
+		</div>
+	</div>
+	<ul>
+		<!--ng-show="item.doc.start_time"-->
+		<li ng-repeat="item in docs"> 
+			<!--if no end time, show clock icon on left -->
+			<a href="#/{{base_url}}/{{item.id}}" class="item item-icon-right item-icon-left" >
+				<span ng-show="item.value.activity_name"><b>{{item.value.activity_name}}&nbsp;</b></span>
+				<span ng-show="item.value.record_type == 'sighting' "><b>Sighting&nbsp;</b></span>
+				<i ng-show="!item.value.end_time" class="icon ion-ios7-timer-outline balanced"></i>
+				
+				{{item.value.start_time | date : "HH:mm"}} 
+				{{item.value.end_time ? ' - ' : ' ... in progress' }} {{item.value.end_time | date : "HH:mm"}}
+				&nbsp; 
+				{{item.value.note}} <!-- ion css truncates text in li -->
+				<!-- note: activity records will have names (name of activity)
+				 but sightings only have time and notes-->
+				<i class="icon ion-ios7-arrow-right "></i>
+			</a>
+		</li>
+	</ul>
+</div>

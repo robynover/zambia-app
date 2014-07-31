@@ -1,0 +1,45 @@
+<div class = "dashboard">
+  <div class="row">
+    <div class="col dash_today">
+      <h4 class="">{{date_today}}</h4> 
+      <!-- <p>{{time_now}}</p> --> 
+    </div>
+  </div>
+
+  
+  <div class="row responsive-md">
+    <!-- box: activities -->
+    <div class="col dash_box">
+      <h3>Observer Activities</h3>
+      
+      <h4>In Progress</h4>
+      <record-list model="activitiesInProgress"></record-list>
+      <h4>Completed</h4>
+      <record-list model="activitiesCompleted"></record-list>
+      <!-- button -->
+      <a href="#/observer_activity/" class="button icon-left ion-plus button-block">New Activity</a>
+      
+          
+    </div>
+
+    <!-- box: sightings -->
+    <div class="col dash_box">
+      <h3>Sightings</h3>
+      
+      <h4>In Progress</h4>
+      <record-list model="sightingsInProgress"></record-list>
+      <h4>Completed</h4>
+      <record-list model="sightingsCompleted"></record-list>
+      <!-- button -->
+      <a href="#/sighting/" class="button icon-left ion-plus button-block">New Sighting</a>
+       
+      
+    </div>
+  </div>
+ 
+  <!-- <div class="row responsive-sm">
+    <div class="col">Last saved to Remote DB .... </div>
+    <div class="col">Connected to Bluetooth device GLO123</div>
+    <div class="col">etc</div>
+  </div> -->
+</div>

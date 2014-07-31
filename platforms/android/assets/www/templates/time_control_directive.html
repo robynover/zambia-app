@@ -1,0 +1,14 @@
+<h1>hello</h1>	<!-- this is the markup for the body of the directive -->
+<div ng-model="record"> 
+<input type="time" value="{{record.start_time | date: 'HH:mm'}}" class="fresh" />
+<!-- <input type="datetime-local" /> -->
+<input type="time"  value="13:10" />		
+
+<h4>sanity check</h4>
+<p>{{record.title}}</p>
+<p>orig timestamp {{original_date}}</p>
+<p>formatted (?) start time: {{record.start_time}}</p>
+</div>
+
+
+<!-- <input id="start_time" ng-model="observerActitivity" ng-change="fixTime($event,'start')" type="time" value="{{observerActivity.start_time | strtodate: 'HH:mm' }}" / -->

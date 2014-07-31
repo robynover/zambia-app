@@ -1,0 +1,117 @@
+﻿<div class="content_text_block" >
+<h2><span ng-show="!submitted">New </span>{{title}} <span ng-show="sighting.start_time">{{sighting.start_time | strtodate: 'MMM d, yyyy'}}</span></h2>
+
+<div id="start_new_sighting" class="start_new_record" ng-hide="submitted">
+    <!-- start and end can be the same button w/ different class and content -->
+    <button ng-click="createSighting()" id="start_sighting_btn" 
+    class="button button-balanced ion-chevron-right icon-right regular_btn"> Start</button>
+</div>
+<!-- end start_new_sighting -->
+<!-- status area -->
+<div id="sighting_status_msg" class="status_msg" ng-class="{'alert-active':statusUpdated}" ng-show="submitted && status_msg">
+        <p>{{status_msg}}</p>
+</div>
+<!-- main detail and form -->
+<div id="sighting_detail" ng-show="submitted">
+    <!-- // start time -->
+    <div class="start_time">
+        <p><label>Start Time </label>
+        {{sighting.start_time | strtodate: 'HH:mm:ss'}} 
+        <a ng-click="showStartInput = ! showStartInput" class="edit_sighting_start inline_edit_btn button button-small">edit time</a></p>
+        </p>
+        <!-- show input form on edit -->
+        
+        <!-- hidden by default -->
+        <!-- if using datetime, need one of these types: 
+            1990-12-31T23:59:60Z
+            1996-12-19T16:39:57-08:00
+        -->
+        <div ng-show="showStartInput" id="sighting_start_input" class="time_input sighting_edit_time"> 
+            <!--"{{sighting.start_time  | strtodate: 'HH:mm'}}"-->
+            <input id="start_time" type="time" value= "{{sighting.start_time  | strtodate: 'HH:mm'}}"/>
+        </div>
+    </div>
+
+    
+    <!-- // elapsed time: if sighting is in progress -->
+    <!-- TODO: update elapsed time if start time changes (can't add ng-model as normal bc time formats)-->
+    <div class="elapsed_time" ng-show ="!sighting.end_time" > 
+        
+        <p class="elapsed_time_title">Elapsed time</p>
+        <p class="time_display">{{sighting.elapsed_time || "loading ..."}}</p>
+        <button ng-click="endSighting()" id="end_sighting_btn" class="button button-small button-assertive ion-stop icon-left regular_btn">End Sighting</button>
+    </div>
+
+    <!-- // end time if sighting is complete -->  
+    <div class="end_time" ng-show="sighting.end_time">
+        <h4>End Time</h4>
+        <p>{{sighting.end_time | strtodate: 'HH:mm:s'}}
+        <a ng-click="showEndInput = ! showEndInput" class="edit_sighting_end inline_edit_btn button button-small">edit time</a></p> 
+        
+        <!-- hidden by default -->
+        <div ng-show="showEndInput" id="sighting_end_input" class="time_input sighting_edit_time"> 
+            <input id="end_time" type="time" value="{{sighting.end_time  | strtodate: 'HH:mm'}}" />
+        </div>
+    </div>
+ 
+    <!-- 
+         //                             //
+        // census input section here   //
+       //                             //
+    -->
+
+    <!-- 
+    // 
+    PHENOTYPES 
+    // 
+    for this sighting
+    -->
+
+    <!-- button to open modal: <a id="add_pheno_btn" class="button">Add Phenotype</a>-->
+    
+    <!--  -->
+    <h4>Phenotype observations</h4>
+    <!-- ADD-PHENOTYPE BUTTON -->
+    <button class="button icon-left icon ion-ios7-plus-outline" ng-click="openModal()" ng-hide="showPhenoDetail">Add Phenotype</button>
+    <!--   THE PHENOTYPE DETAIL BOX, once the phenotype has been chosen -->
+    <div id="sighting_phenotype_area" ng-show="showPhenoDetail" class="">
+        
+        <!-- this button could be used to change phenotype. Prob don't need it -->
+        <!--<button class="button button-small" ng-click="openModal()">Choose Phenotype</button>-->
+        <h4 class="phenotype_name">{{tempPhenotype.name}}</h4>
+
+        <!--
+        TODO! Allow for new phenotype
+         <div id="new_phenotype_input" ng-show="tempPhenotype.id == 'new'">
+            <input ng-model="tempPhenotype.name" type="text" value = "New Phenotype" />
+        </div> -->
+
+        <div class="" >
+            <p ng-model="tempPhenotype.frequency">Frequency {{tempPhenotype.frequency || 50}}%</p>
+            <input ng-model="tempPhenotype.frequency" id="frequency_slider" type="range" min="0" max="100" value="50" />      
+        </div>
+        <label for="pheno_notes">Phenotype Notes</label>
+        <textarea ng-model="tempPhenotype.notes" cols="40" rows="6" name="pheno_notes" id="pheno_notes"></textarea>
+        <!-- // save or cancel phenotype // -->
+        <a ng-click="addPhenotype(tempPhenotype)" class="button button-small button-dark">Save</a> 
+        &nbsp; &nbsp; <a class="button button-small button-outline" ng-click="showPhenoDetail = false">Cancel</a>
+        
+    </div><!-- end pheno_obs -->
+
+    <div id="pheno_obs_records">
+        <h4 ng-show="sighting.phenotypes.length">Phenotypes Recorded</h4>
+        <ul class = "list">
+            <li class="item" ng-repeat="sp in sighting.phenotypes"><a>{{sp.name}}, {{sp.frequency}}%</a></li>
+        </ul>
+    </div>
+
+    <!-- // notes -->
+    <h4>Sighting Notes</h4>
+    <textarea ng-model="sighting.sighting_notes">{{sighting.sighting_notes}}</textarea>
+    
+    <!-- // submit -->
+    <button ng-click="editSighting()" id="edit_sighting_btn" class="button button-positive ion-pencil icon-left regular_btn">Update</button>
+    
+
+</div> <!-- end sighting detail -->
+</div>

@@ -1,0 +1,19 @@
+<div class="content_text_block" >
+
+<button class="button" ng-click="getDeviceList()">Scan</button>
+
+<div>
+	<p>Select Device</p>
+ <select ng-model="currentDevice" ng-options="d as d.name for d in deviceList"></select>
+<!-- <select>
+	<option ng-model="currentDevice" ng-repeat="d in devicelist" value="{{d.id}}">{{d.name}}</option>
+</select> -->
+<p>Device Selected: {{currentDevice.name}}</p>
+</div>
+
+<button class="button" ng-click="connectToBt()">Connect</button>
+<p>&nbsp;</p>
+<button class="button" ng-click="getNmea()">Get NMEA sample</button>
+
+ </div>
+   

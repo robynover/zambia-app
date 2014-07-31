@@ -1,0 +1,20 @@
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes.dex : \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/ionic/keyboard/IonicKeyboard$1.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/ionic/keyboard/IonicKeyboard$2.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/ionic/keyboard/IonicKeyboard.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/ionicframework/zambiaangular705012/BuildConfig.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/ionicframework/zambiaangular705012/R$attr.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/ionicframework/zambiaangular705012/R$drawable.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/ionicframework/zambiaangular705012/R$string.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/ionicframework/zambiaangular705012/R$xml.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/ionicframework/zambiaangular705012/R.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/ionicframework/zambiaangular705012/zambiaangular.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/megster/cordova/BluetoothSerial$1.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/megster/cordova/BluetoothSerial.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/megster/cordova/BluetoothSerialService$AcceptThread.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/megster/cordova/BluetoothSerialService$ConnectedThread.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/megster/cordova/BluetoothSerialService$ConnectThread.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/com/megster/cordova/BluetoothSerialService.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/org/apache/cordova/api/Dummy.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/classes/org/apache/cordova/device/Device.class \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/ant-build/dexedLibs/classes-b6a89eaab6944386ef087a0259af7a2c.jar \

@@ -1,0 +1,149 @@
+textarea, input[type="datetime"], input[type="time"], input[type="text"]{
+	border: 1px solid #ccc;
+}
+/*padding for things that aren't lists, etc */
+.content_text_block{  
+	padding: 1.2em;
+}
+.regular_btn{
+	margin: .5em 0;
+}
+.inline_edit_btn{
+	display:inline;
+	line-height: 1.5em;
+	
+}
+#new_activity_type{
+	border: 1px solid #6c3;
+	padding: 1em;
+}
+.status_msg{
+	background-color: #F0F3F8;
+	padding: 1em;
+	line-height: 1em;
+	margin-bottom: 1em;
+}
+.status_msg p{
+	margin: 0;
+	font-size: 1.2em;
+}
+.elapsed_time{
+	text-align: center;
+	background-color: #efefef;
+	padding: 1em;
+}
+.elapsed_time p{
+	font-size: 1.2em;
+
+}
+.elapsed_time .time_display{
+	/*border: 1px solid red;*/
+	font-size: 1.4em;
+	height: 1em;
+}
+#observer_activity_detail .start_time label,
+#observer_activity_detail .end_time label{
+	font-weight: bold;
+	font-size: 1.1em;
+} 
+.time_input input{
+	border:1px solid #ccc;
+	display:inline;
+	width:20em;
+}
+.start_new_record{
+	text-align: center;
+}
+#sighting_phenotype_area{
+	border: 1px solid #666;
+	padding: 1em;
+	margin-top:1em;
+}
+#sighting_phenotype_area h4.phenotype_name{
+	/*color: #4a87ee;*/
+}
+
+/* -- css from dashboard experimental page -- */
+.dashboard .col{
+	background-color: #efefef;
+	border:1px solid #4a87ee;
+	margin: .3em;
+}
+.sighting_dash{
+	text-align: center;
+}
+.dash_today{
+	text-align: center;
+}
+.sighting_dash .sighting_stop_btn{
+	color: red;
+	border-radius: 50%;
+	
+}
+.dash_start_time{
+	font-size: 1em;
+	margin-bottom: 1em;
+}
+.dashboard .in_progress_item h4, .dashboard .completed_today h4{
+	color: #4a87ee;
+	font-size: 1em;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+.dashboard td{
+	padding: .2em .5em;
+}
+input[type="range"]{
+	/*background color can be used to set the underneath color bar when not selected.
+	top bar in ionic can be set with ionic color names */
+	width: 80%;
+}
+#pheno_notes{
+	margin-bottom: 1em;
+}
+#pheno_obs_records li.item{
+	padding: .3em;
+	border: none;
+	/*border-left: none;
+	border-right: none;*/
+}
+
+/*for fading alert messages*/
+@keyframes fadeOut
+{
+  from { opacity: 1.0;  background-color: #DFF2BF;}
+  70% { opacity: 0.6; }
+  to { opacity: 1.0; }
+}
+
+@-webkit-keyframes fadeOut 
+{
+  from { opacity: 1.0 ; background-color: #DFF2BF;}
+  70% { opacity: 0.6; }
+  to { opacity: 1.0; }
+}
+
+.alert-active{ 
+  animation: fadeOut 3s ;
+  -webkit-animation: fadeOut 3s ;
+  animation-iteration-count: 1;
+  -webkit-animation-iteration-count: 1;
+}
+.list_pg_title{
+	/*float:left;*/
+}
+.list_pg_new_btn{
+	float:right;
+	color: #333 !important;
+}
+.settings_pg .button{
+	margin: 1em auto;
+}
+.highlighted_section{
+	border-top: 1px solid #333;
+	padding-top: 1em;
+	margin-top: 1em;
+}
+#save_remote_btn{
+	color: #333 !important;
+}

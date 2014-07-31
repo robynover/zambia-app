@@ -1,0 +1,11 @@
+﻿<ion-header-bar class="bar-positive">
+  <!--back button -->
+	<button ng-controller="MainController" class="button button-icon button-clear icon ion-ios7-arrow-back" ng-click="goBack()"></button>
+  <!-- title -->
+	<h1 class="title" ng-controller="MainController">EthoInformatics</h1>
+  <!-- menu button -->
+  <!-- <button ng-controller="MainController" class="button button-icon icon ion-navicon" ng-click="toggleSideMenu()"> -->
+  </button>
+
+	<a ng-show="path_to_new" href="#/{{path_to_new}}" class="button icon-left "><i class="icon ion-plus"></i></a>
+</ion-header-bar>

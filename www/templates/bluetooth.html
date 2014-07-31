@@ -1,0 +1,19 @@
+<div class="content_text_block" ng-controller="BluetoothController">
+
+<button class="button" ng-click="getDeviceList()">Scan</button>
+
+<div>
+	<p>Select Device</p>
+ <select ng-model="currentDevice" ng-options="d as d.name for d in deviceList"></select>
+
+<p ng-show="currentDevice.name">Device Selected: {{currentDevice.name}}</p>
+</div>
+
+<!-- TODO: toggle between connect/disconnect -->
+<button class="button" ng-click="connectToBt()">Connect</button> 
+<p>{{btConnectionStatus}}</p>
+
+
+
+ </div>
+   
