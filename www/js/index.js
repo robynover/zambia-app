@@ -899,7 +899,7 @@ var app = {
         });
     },
     getCompletedSightings: function(callback){
-        map = function(doc) {
+        var map = function(doc) {
             if(doc.objtype == 'sighting' && doc.end_time) {
              emit(doc.start_time, {sighting_id:doc.sighting_id,
                             start_time:doc.start_time,

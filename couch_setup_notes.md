@@ -8,7 +8,7 @@
 <http://docs.couchdb.org/en/latest/install/mac.html#installation-using-the-apache-couchdb-native-application>   
 Confirm that Couch is running by visiting localhost:5984/_utils in a browser. This is the GUI interface for CouchDB, called *Futon*.
 	
-4. Check the CouchDB configuration settings. In Futon, on the right sidbar, go to Tools > Configuration. Set the option "bind_address" (under "httpd") to "0.0.0.0" if it is not already set to that.
+4. Check the CouchDB configuration settings. In Futon, on the right sidebar, go to Tools > Configuration. Set the option "bind_address" (under "httpd") to "0.0.0.0" if it is not already set to that.
 
 5. Use the IP address from step #2 in your **mobile** browser, but add the port number, eg., 192.168.1.3:5984. If it works, you'll see a short JSON string, like:
 
