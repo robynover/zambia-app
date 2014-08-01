@@ -48,19 +48,35 @@ angular.module('zapp.controllers', [])
 	$scope.lastCompletePacket = [];
 	$scope.lastSaveTime = new Date().getTime();
 
+	//see if it's already on.
+	bluetoothSerial.isConnected(
+			function(){
+				console.log('bluetooth is ON!');
+			},
+			function(){
+				console.log('bluetooth is OFF');
+			}
+	);
+
 	$scope.$on('bt-connected',function(){
 		$scope.$apply(function(){
 			$scope.btConnectionStatus = 'Connected to '+ $scope.currentDevice.name;
+			//$rootScope.bluetoothConnected = true;
+			//$scope.bluetoothConnected = true;
 		});
 	});
 	$scope.$on('bt-connection-fail',function(){
 		$scope.$apply(function(){
 			$scope.btConnectionStatus = 'Could not connect';
+			//$rootScope.bluetoothConnected = false;
+			//$scope.bluetoothConnected = false;
 		});	
 	});
 	$scope.$on('bt-disconnected',function(){
 		$scope.$apply(function(){
 			$scope.btConnectionStatus = 'Disconnected from ' + $scope.currentDevice.name;
+			//$rootScope.bluetoothConnected = false;
+			//$scope.bluetoothConnected = false;
 		});	
 	});
 
@@ -70,6 +86,7 @@ angular.module('zapp.controllers', [])
 			// put in $apply to update the view async'ly
 			$scope.$apply(function(){
 				$scope.deviceList = results;
+				$scope.currentDevice = results[0];
 			});
 		});
 	};	
@@ -77,8 +94,13 @@ angular.module('zapp.controllers', [])
 	$scope.connectToBt = function(){
 		$scope.btConnectionStatus = 'Connecting ...';
 		//console.log('connect to bt. device: ' + $scope.currentDevice.address + ' id: '+$scope.currentDevice.id);
-		console.log(JSON.stringify($scope.currentDevice));
-		bluetoothFactory.connect($scope.currentDevice.id); // factory does all the data
+		//console.log(JSON.stringify($scope.currentDevice));
+		//bluetoothFactory.connect($scope.currentDevice.id); // factory(ies) takes care of all data processing
+		bluetoothFactory.connectionManager().connect($scope.currentDevice.id);
+
+
+
+
 		/*bluetoothFactory.connect($scope.currentDevice.id, function(data){
 			//Manage NMEA packets. The parsing is done by the factory. grouping of sentences is done here
 			var sentenceType = data.split(',')[0]; // eg, $GPXYZ
@@ -279,13 +301,7 @@ angular.module('zapp.controllers', [])
 		// stores to Pouch, and Pouch returns record w/ id and rev
 		$scope.observerActivity.start_time = new Date().getTime();
 
-		// ****** !!! add location data !!! ********** //
-		//$scope.observerActivity.geolocation = nmeaFactory.getNmeaPacket();
-		//$scope.observerActivity.geolocation = nmeaFactory.getNmeaPacket();
-		nmeaFactory.getNmeaPacket();
-		//console.log(JSON.stringify($scope.observerActivity.geolocation));
-		// ********************* //
-
+		// ---- HANDLE NEW ACTIVITY NAME ------ //
 		if ($scope.observerActivity.activity_name == 'new'){
 			// add the new activity to the list and select it
 			$scope.activities.push(new_activity_field.value);
@@ -293,8 +309,73 @@ angular.module('zapp.controllers', [])
 			$scope.observerActivity.activity_name = new_activity_field.value;
 			// TODO: add it to the master list of activities (from local storage ?)
 		} 
+
+		var addRecord = function(){
+			observerActivityFactory.add($scope.observerActivity).then(
+				function(res){
+					console.log('record added!');
+					$scope.observerActivity._id = res.id;
+					$scope.observerActivity._rev = res.rev;
+					//check
+					console.log(JSON.stringify($scope.observerActivity));
+					// now that there's a start time, start the clock
+					startClock();
+					// show status message
+					$scope.status_msg = $scope.observerActivity.activity_name + ", started at "; 
+					$scope.status_msg += $filter('date')($scope.observerActivity.start_time, 'HH:mm:ss');
+					//handleAlert();
+
+				}
+			);
+		};
+
+		// ****** !!! add location data !!! ********** //
+		// wait for geo data if BT is on
+		//if ($rootScope.bluetoothConnected){
+		bluetoothSerial.isConnected(
+			function(){ //yes
+				console.log('observerActivity knows BT is connected');
+				nmeaFactory.getNmeaPacket().then(function(nmeaData){
+					$scope.observerActivity.geolocation = nmeaData;
+					addRecord();
+				},function(){ 
+					console.log('bluetooth timed out');
+					// no data came in, go ahead and add record anyway
+					console.log(JSON.stringify($scope.observerActivity));
+					addRecord();
+				});
+			},
+			function(){ //no
+				console.log('no BT');
+				console.log(JSON.stringify($scope.observerActivity));
+				addRecord();
+			}
+			);
+
+
+		/*if (bluetoothSerial.isConnected === true){
+			console.log('observerActivity knows BT is connected');
+			nmeaFactory.getNmeaPacket().then(function(nmeaData){
+				$scope.observerActivity.geolocation = nmeaData;
+				addRecord();
+			},function(){ 
+				console.log('failed w timeout');
+				// no data came in, go ahead and add record anyway
+				console.log($scope.observerActivity);
+				addRecord();
+
+			});
+			// ? time out -- in case bluetooth doesn't give data, don't stall the whole process
+
+		} else {
+			console.log('no BT');
+			console.log(JSON.stringify($scope.observerActivity));
+			addRecord();
+		}*/
+		
+		
 		// observerActivityFactory is using add() function inherited from pouchDbFactory
-		observerActivityFactory.add($scope.observerActivity).then(
+		/*observerActivityFactory.add($scope.observerActivity).then(
 			function(res){
 				//console.log(res);
 				$scope.observerActivity._id = res.id;
@@ -307,7 +388,7 @@ angular.module('zapp.controllers', [])
 				//handleAlert();
 
 			}
-		);		
+		);*/		
 	};
 	// NEEDS WORK: bc of time formats, form fields and props won't auto update.
 	$scope.editObsActivity = function(){

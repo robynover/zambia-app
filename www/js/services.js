@@ -503,7 +503,7 @@ angular.module('zapp.services', [])
 			}
     	}; //end return
 })
-.factory('nmeaFactory',function(myTimeService,bluetoothFactory){
+.factory('nmeaFactory',function(myTimeService,bluetoothFactory,$q,$timeout){
 	return {
 		firstSentenceType: false, // might think of this as the "control sentence"
 		nmeaPacket: [],
@@ -513,43 +513,47 @@ angular.module('zapp.services', [])
 		// called by the outside world:
 		getNmeaPacket: function(){
 			/*
-			Notes: may need to use deferred/promise. example:
-				var deferred = $q.defer();
-				something something {
-			        deferred.resolve(the_data);
-			    });
-			    return deferred.promise;
+			// also need something from deferred/promise if it doesn't work! 
+			    // ex: deferred.reject('Greeting ' + name + ' is not allowed.');
 			*/
-			var myParser = this.nmeaParser; // will run parse() func but can't access any refs to 'this' in the func
+			var deferred = $q.defer();
+			// set up to use the parser
+			// so it can run parse() func w/o access any refs to 'this' in the func
+			var myParser = this.nmeaParser; 
+			var done = false;
 			console.log('getNmeaPacket from factory');
-			//console.log(JSON.stringify(this.nmeaCompletePacket));
-			// could send the parse function into subBt function too, but that seems dumb
-			// eg, this.subBt(this.parse,function(packet)... etc )
+			// subscribe to bluetooth, start the chain of BT->data->parse->return nmea obj
 			this.subBt(function(packet){
-				console.log("COMPLETE: " + JSON.stringify(packet));
-				
+				console.log("COMPLETE: " + JSON.stringify(packet));	
 				// parse it!
-				//var parsed = this.parse(packet); 
 				var parsed = myParser(packet);
-				console.log("Parsed????");
+				console.log("Parsed");
 				console.log(JSON.stringify(parsed));
-				
-				return packet; // can't return from here! 
+				done = true;
+				deferred.resolve(packet); //send back the data via promise 
 			});
-			// there are going to be async issues here! 
-			// maybe there needs to be a promise in the subBt func??
-			
+			// if no data is coming in, time out and fail
+			$timeout(function(){
+				console.log("IN TIMEOUT: done?" + done);
+				if (done !== true){
+					console.log("Timed out");
+					deferred.reject("Timed out"); //reject the service in case of timeout
+		      	}
+		      }, 1000);
+		        
+			return deferred.promise;
 		},
 
-		//experiment
+		//subscribe to Bluetooth
 		//bluetoothFactory.registerSubscriber(function(data,subId){} //results from BT will be in data -- remember, it's just one sentence at a time
 		subBt: function(callback){
 			console.log('subBt from factory ----- SCOPE CHECK --- ' + this.debug);
 			var firstSentenceType = false; // might think of this as the "control sentence"
 			var nmeaPacket = [];
 			var nmeaCompletePacket = [];
-			var controlVar = 1;
+			var controlVar = 1; //for testing
 
+			// function to send to register:
 			var processNmeaStream = function(nmeaSentenceData,subscriberId){ // these are the values that are RECEIVED, via callback
 				console.log('process nmea stream: ' + nmeaSentenceData );
 				//console.log(JSON.stringify(nmeaPacket));
@@ -571,10 +575,10 @@ angular.module('zapp.services', [])
 					console.log("GOT PACKET!");
 					// clear the working packet
 					nmeaPacket = [];
-					// unsubscribe from BT
+					// unsubscribe from BT !
 					bluetoothFactory.removeSubscriber(subscriberId);
 
-					//send back data in callback
+					//!! --- Here's where the nmea object finally gets returned --- !!//
 					callback(nmeaCompletePacket);
 				}	
 
@@ -582,35 +586,12 @@ angular.module('zapp.services', [])
 				nmeaPacket.push(nmeaSentenceData);
 				console.log('added to packet: ' + nmeaSentenceData );		
 			};
-			// SUBSCRIBE!
+
+			// +++++ SUBSCRIBE! ++++++ //
 			bluetoothFactory.registerSubscriber(processNmeaStream);
-			
 			// registerSubscriber will hand back the data and a subscriber id -->processNmeaStream
 		},
 		
-		// will be run over and over as data comes in
-		/*processNmeaStream: function(nmeaSentenceData,subscriberId){ // these are the values that are RECEIVED, via callback
-				console.log('processNmeaStream from factory: ' + nmeaSentenceData);
-
-				var sentenceType = nmeaSentenceData.split(',')[0]; // eg, $GPXYZ
-				
-				// use the first sentence we see as the base, to know when it's made a round, and to make a new packet
-				if (!this.firstSentenceType){
-					this.firstSentenceType = sentenceType;
-				}
-				// add data to the packet
-				this.nmeaPacket.push(nmeaSentenceData);
-
-				// if it has made its full round of sentences, it's a packet. stop collecting data
-				if (this.firstSentenceType == sentenceType && this.nmeaPacket.length > 0){
-					// same the new packet
-					this.nmeaCompletePacket = this.nmeaPacket;
-					// clear the working packet
-					this.nmeaPacket = [];
-					// unsubscribe from BT
-					bluetoothFactory.remove(subscriberId);
-				}			
-		},*/
 		// ** TODO: for raw text: **
 		// store everything from the packet into the master array of sentences
 		// this.nmeaRawArr.push.apply(this.nmeaRawArr,this.nmeaPacket);
@@ -837,41 +818,7 @@ angular.module('zapp.services', [])
 			nmeaObj.nmeaSentence = nmeaStr;		
 			return nmeaObj;
 		},
-		/*
-		Turn GPS date/time text (eg, date May 23, 2012 is 230512) into JS Date object
-		function modified from https://github.com/dmh2000/node-nmea
-		@udate in format ddmmyy, 	example: 160614   <-- June 16, 2014
-		@utime in format hhmmss.ss, example: 180827.0 <-- 18:08:27.0
-		*/
-		/*convertGPSDateTime: function(udate, utime) {
-			// if the date or time is not given, use today
-			// numbers must be strings first in order to use slice()
-			var D, M, Y, h, m, s;
-			if (!udate){
-				dt = new Date();
-				D = this.zeroPad(dt.getDate());
-				M = this.zeroPad(dt.getMonth());
-				Y = dt.getFullYear();
-			} else {
-				udate = udate.toString();
-				D = parseInt(udate.slice(0, 2), 10);
-				M = parseInt(udate.slice(2, 4), 10);
-				Y = parseInt(udate.slice(4, 6), 10) + 2000;
-			}
-			if (!utime){
-				dt = new Date();
-				h = this.zeroPad(dt.getHours());
-				m = this.zeroPad(dt.getMinutes());
-				s = this.zeroPad(dt.getSeconds());
-			} else {
-				utime = utime.toString();
-				h = parseInt(utime.slice(0, 2), 10);
-				m = parseInt(utime.slice(2, 4), 10);
-				s = parseInt(utime.slice(4, 6), 10);
-			}
-			
-			return new Date(Date.UTC(Y, M, D, h, m, s));
-		},*/
+		
 		zeroPad: function(num){
 			return (num < 10) ? String('0') + num : num; 
 		}
@@ -885,11 +832,7 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 	return {
 		deviceAddress: "AA:BB:CC:DD:EE:FF",  // get your mac address from bluetoothSerial.list
 		deviceName: "No Name",
-		//factoryDeviceList: [],
-		//portOpen: false, // keep track of whether BT is connected
 		debug: 'data here debug. kittens!',
-		lastTime: new Date().getTime(),
-		subscriberRegistry: {},
 
 		// Check Bluetooth, list ports if enabled:
 		findDevices: function(callback) { 
@@ -916,36 +859,117 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 				notEnabled
 			);
 		},
-		connect: function (deviceAddress) {
-			console.log('connect called from factory. ... device address: ' + deviceAddress);
-			// set this.deviceAddress?? or in rootscope??
-			
-			bluetoothSerial.connect(
-				deviceAddress, 
-				this.connectSuccess, 
-				/*function(){
-					console.log('ok');
-					console.log(this.dataHandler);
+		
+		/// todo: REWRITE!!!! not reading root scope any more!!!!
+		//bluetoothSerial.isConnected(disconnect, connect);
+		connectionManager: function(){
+			// use named object to better manage scope
+			var mc = {
+				delegate: function(){ //delegate
+					bluetoothSerial.isConnected(mc.disconnect, mc.connect);
+				}, 
+				connect: function(deviceAddress){
+					console.log('connect called');
+					// attempt to connect
+					bluetoothSerial.connect(
+						deviceAddress,  // device to connect to
+						mc.connectSuccess,    // on success
+						mc.connectFail    // on failure
+					);
+				},
+				disconnect: function(){
+					bluetoothSerial.disconnect(
+						function(){ // unsubscribe
+							$rootScope.$broadcast('bt-disconnected');
+							bluetoothSerial.unsubscribe();
+						},     
+						function(){ //error
+							console.log('disconnect error');
+						}      
+					);	
+				},
+				connectSuccess: function(){
+					console.log('connectSuccess func called');
+					$rootScope.$broadcast('bt-connected');
+					$rootScope.subscriberRegistry = {};
+					//double check
+					bluetoothSerial.isConnected(
+							function(){console.log('connectCheck: YES');},
+							function(){console.log('connectCheck: NO');}
+						);
 					
-					//bluetoothSerial.subscribe('\n', callback); 
-					//registry version:
-					bluetoothSerial.subscribe('\n', this.dataHandler);
-				},*/   
-				function(){
+					//bluetooth subscribe
+					//bluetoothSerial.subscribe('\n', mc.DataHandler,function(){console.log('subscribe failed');});
+					bluetoothSerial.subscribe('\n', function(data){
+						//console.log('got data');
+						mc.dataHandler(data);
+					},function(){console.log('subscribe failed');});
+				},
+				connectFail: function(){
 					$rootScope.$broadcast('bt-connection-fail');
 					console.log('fail');
-					//$rootScope = bluetoothConnected = false;
-				}    
-			);	
+				},
+				dataHandler: function(data){
+					console.log('********* DATA: ' + data);
+					//console.log('d');
+					if ( Object.keys($rootScope.subscriberRegistry).length > 0 ){
+						//console.log(' ========= SUBSCRIBERS: ============ ');
+						for (var id in $rootScope.subscriberRegistry){
+							// call the function, sending back data
+							$rootScope.subscriberRegistry[id](data,id); // also send back subscriber id, so it can be unsubscribed
+						}
+					} else {
+						//console.log(' ========= NO SUBSCRIBERS ============ ');
+					}
+				}
+			};
+			return mc;
 		},
-		connectSuccess: function(){ 
+		// called by outside class to put their function in registry
+		registerSubscriber: function(func){
+			console.log('register subscriber from bluetoothFactory');
+			//console.log(func);
+			var id = new Date().getTime();
+			// store the function name int registry with a unique id
+			//this.subscriberRegistry[id] = func;
+			console.log(JSON.stringify($rootScope.subscriberRegistry));
+			$rootScope.subscriberRegistry[id] = func;
+		},
+		removeSubscriber: function(id){
+			console.log('remove subscriber from bluetoothFactory');
+			// remove from registry w/ id #
+			delete $rootScope.subscriberRegistry[id];	
+		},
+		/*connect: function (deviceAddress) {
+			console.log('connect called from factory. ... device address: ' + deviceAddress);
+			// here's the real action of the manageConnection function:
+		    // if it's connected, disconnect instead
+		    if (bluetoothSerial.isConnected === false){
+		    	this.disconnect();
+		    } else{
+		    	bluetoothSerial.connect(
+					deviceAddress, 
+					this.connectSuccess($rootScope),   
+					function(){
+						$rootScope.$broadcast('bt-connection-fail');
+						console.log('fail');
+						//$rootScope.bluetoothConnected = false;
+					}    
+				);
+		    } //end else				
+		},
+		connectSuccess: function(rs){ 
 			console.log('connectSuccess func');
+			//rs.bluetoothConnected = true;
+			rs.$broadcast('bt-connected');
+			rs.subscriberRegistry = {};
+			$rootScope.bluetoothConnected = true;
 			$rootScope.$broadcast('bt-connected');
-			$rootScope.subscriberRegistry = {};
+			$rootScope.subscriberRegistry = {}; //had to use rootScope here; could find NO way around it
+			
 			var myDataHandler = function(data){
-				//console.log('myDataHandler from bluetoothFactory');
-				//console.log('*********ACTUAL DATA: ' + data);
-				//console.log('got data');
+				//console.log('********* DATA: ' + data);
+				console.log('d');
 				if ( Object.keys($rootScope.subscriberRegistry).length > 0 ){
 					//console.log(' ========= SUBSCRIBERS: ============ ');
 					for (var id in $rootScope.subscriberRegistry){
@@ -956,26 +980,11 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 					//console.log(' ========= NO SUBSCRIBERS ============ ');
 				}
 			};
-
 			//bluetooth subscribe
-			bluetoothSerial.subscribe('\n', myDataHandler);
-
-		},
+			bluetoothSerial.subscribe('\n', myDataHandler,function(){console.log('subscribe failed');});
+		},*/
 		
-		// called by outside class to put their function in registry
-		registerSubscriber: function(func){
-			console.log('register subscriber from bluetoothFactory');
-			//console.log(func);
-			var id = new Date().getTime();
-			// store the function name int registry with a unique id
-			//this.subscriberRegistry[id] = func;
-			$rootScope.subscriberRegistry[id] = func;
-		},
-		removeSubscriber: function(id){
-			console.log('remove subscriber from bluetoothFactory');
-			// remove from registry w/ id #
-			delete $rootScope.subscriberRegistry[id];	
-		},
+		/*
 		disconnect: function () {
 			//app.display("Attempting to disconnect");
 			//app.displayStatus('device',"Attempting to disconnect from <b>" + app.deviceName + "</b>");
@@ -983,17 +992,17 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 			bluetoothSerial.disconnect(
 				function(){
 					$rootScope.$broadcast('bt-disconnected');
-					//$rootScope = bluetoothConnected = false;
+					//$rootScope.bluetoothConnected = false;
 					bluetoothSerial.unsubscribe();
 				},    // stop listening to the port
 				function(){ 
 					console.log('error on unsubscribe');
 				}      // handle error if you fail (named func or anon here)
 			);
-		},
-		manageConnection: function() {
+		},*/
+		/*manageConnection: function() {
 			// here's the real action of the manageConnection function:
 			bluetoothSerial.isConnected(disconnect, connect);
-		}
+		}*/
 	};
 });
