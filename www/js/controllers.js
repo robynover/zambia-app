@@ -26,23 +26,18 @@ angular.module('zapp.controllers', [])
 	$scope.activitiesCompleted = {};
 	observerActivityFactory.getObserverActivityRecords("inprogress",3).then(function(results){		
 		$scope.activitiesInProgress.docs = results.rows;
-		console.log('obs act in progress');
-		console.log(JSON.stringify(results.rows));
+		//console.log('+++ obs act in progress +++ ' );
+		//console.log(JSON.stringify(results.rows));
 	});
+		
 	observerActivityFactory.getObserverActivityRecords("completed",3).then(function(results){		
 		$scope.activitiesCompleted.docs = results.rows;
 	});
 	sightingFactory.getSightings("inprogress",3).then(function(results){
 		$scope.sightingsInProgress.docs = results.rows;	
-		console.log('sightings in progress');
-		console.log(JSON.stringify(results.rows));
-	});
-	// callback
-	/*
-	sightingFactory.getSightings("inprogress",3,function(results){
-		$scope.sightingsInProgress.docs = results.rows;
-	});*/
-	//promise
+		//console.log('sightings in progress');
+		//console.log(JSON.stringify(results.rows));
+	});	
 	sightingFactory.getSightings("completed",3).then(function(results){
 		$scope.sightingsCompleted.docs = results.rows;
 	});

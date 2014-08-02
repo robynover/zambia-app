@@ -14,7 +14,7 @@
 	<ul>
 		<div ng-show="!docs" class="item"><i class="icon ion-loading-c"></i></div>
 		<li ng-show="docs && !docs[0]" class="item">No records yet</li>
-		<!--ng-show="item.doc.start_time"-->
+		
 		<li ng-repeat="item in docs"> 
 			<!--if no end time, show clock icon on left -->
 			<a href="#/{{base_url}}/{{item.id}}" class="item item-icon-right item-icon-left" >
