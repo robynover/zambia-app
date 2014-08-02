@@ -16,7 +16,8 @@
     <!-- // start time -->
     <div class="start_time">
         <p><label>Start Time </label>
-        {{sighting.start_time | strtodate: 'HH:mm:ss'}} 
+        <!-- {{sighting.start_time | strtodate: 'HH:mm:ss'}} --> 
+        {{time_only_start}}
         <a ng-click="showStartInput = ! showStartInput" class="edit_sighting_start inline_edit_btn button button-small">edit time</a></p>
         </p>
         <!-- show input form on edit -->
@@ -28,7 +29,8 @@
         -->
         <div ng-show="showStartInput" id="sighting_start_input" class="time_input sighting_edit_time"> 
             <!--"{{sighting.start_time  | strtodate: 'HH:mm'}}"-->
-            <input id="start_time" type="time" value= "{{sighting.start_time  | strtodate: 'HH:mm'}}"/>
+        <input id="start_time" type="time" ng-model="time_only_start" value="{{sighting.start_time | strtodate: 'HH:mm'}}" />
+        <!-- value="{{time_only_start}}" -->
         </div>
     </div>
 
@@ -45,12 +47,12 @@
     <!-- // end time if sighting is complete -->  
     <div class="end_time" ng-show="sighting.end_time">
         <h4>End Time</h4>
-        <p>{{sighting.end_time | strtodate: 'HH:mm:s'}}
+        <p>{{time_only_end}}
         <a ng-click="showEndInput = ! showEndInput" class="edit_sighting_end inline_edit_btn button button-small">edit time</a></p> 
         
         <!-- hidden by default -->
         <div ng-show="showEndInput" id="sighting_end_input" class="time_input sighting_edit_time"> 
-            <input id="end_time" type="time" value="{{sighting.end_time  | strtodate: 'HH:mm'}}" />
+            <input id="end_time" type="time" ng-model="time_only_end" value="{{sighting.start_end | strtodate: 'HH:mm'}}" />
         </div>
     </div>
  
@@ -70,7 +72,7 @@
     <!-- button to open modal: <a id="add_pheno_btn" class="button">Add Phenotype</a>-->
     
     <!--  -->
-    <h4>Phenotype observations</h4>
+    <h3>Phenotype observations</h3>
     <!-- ADD-PHENOTYPE BUTTON -->
     <button class="button icon-left icon ion-ios7-plus-outline" ng-click="openModal()" ng-hide="showPhenoDetail">Add Phenotype</button>
     <!--   THE PHENOTYPE DETAIL BOX, once the phenotype has been chosen -->

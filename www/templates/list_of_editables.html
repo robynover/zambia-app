@@ -12,12 +12,13 @@
 		</div>
 	</div>
 	<ul>
+		<div ng-show="!docs" class="item"><i class="icon ion-loading-c"></i></div>
 		<!--ng-show="item.doc.start_time"-->
 		<li ng-repeat="item in docs"> 
 			<!--if no end time, show clock icon on left -->
 			<a href="#/{{base_url}}/{{item.id}}" class="item item-icon-right item-icon-left" >
 				<span ng-show="item.value.activity_name"><b>{{item.value.activity_name}}&nbsp;</b></span>
-				<span ng-show="item.value.record_type == 'sighting' "><b>Sighting&nbsp;</b></span>
+				<span ng-show="item.value.record_type == 'sighting' "><b>Sighting&nbsp; {{item.value.start_time | date: "MMM d"}}</b></span>
 				<i ng-show="!item.value.end_time" class="icon ion-ios7-timer-outline balanced"></i>
 				
 				{{item.value.start_time | date : "HH:mm"}} 

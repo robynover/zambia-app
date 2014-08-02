@@ -32,9 +32,14 @@ angular.module('zapp.controllers', [])
 		$scope.activitiesCompleted.docs = results.rows;
 	});
 	sightingFactory.getSightings("inprogress",3).then(function(results){
-		$scope.sightingsInProgress.docs = results.rows;
-		
+		$scope.sightingsInProgress.docs = results.rows;	
 	});
+	// callback
+	/*
+	sightingFactory.getSightings("inprogress",3,function(results){
+		$scope.sightingsInProgress.docs = results.rows;
+	});*/
+	//promise
 	sightingFactory.getSightings("completed",3).then(function(results){
 		$scope.sightingsCompleted.docs = results.rows;
 	});
@@ -219,20 +224,26 @@ angular.module('zapp.controllers', [])
 	$rootScope.path_to_new = 'observer_activity/';
 	$scope.list_url = 'activity_records';
 	$scope.title = "Observer Activity Records";
-	$scope.filterBy = 'all';
+	
+	$scope.filterBy = 'all'; 
 
-	switch ($stateParams.getby){ //setting explicitly to restrict values allowed
-		case "completed":
-			$scope.filterBy = 'completed';
-			break;
-		case "inprogress":
-			$scope.filterBy = 'inprogress';
-			break;
-	}
+	if ($stateParams.getby == 'completed' || $stateParams.getby == 'inprogress'){
+		$scope.filterBy = $stateParams.getby;
+	} 
+	
 	observerActivityFactory.getObserverActivityRecords($scope.filterBy).then(function(results){		
 		$scope.docs = results.rows;
 		//console.log(results.rows);
+		if ($scope.filterBy == 'inprogress'){
+			$scope.inprogressDocs = results.rows;
+		} else if ($scope.filterBy == 'completed'){
+			$scope.completedDocs = results.rows;
+		} else {
+			$scope.allDocs = results.rows;
+		}
 	});
+	
+	
    
 })
 .controller('ObserverActivityController', function (
@@ -243,7 +254,7 @@ angular.module('zapp.controllers', [])
 		$interval,
 		$state,
 		$rootScope,
-		//$timer,
+		$timeout,
 		myTimeService,
 		nmeaFactory) {
 	$scope.observerActivity = {record_type: 'observer_activity'};
@@ -263,12 +274,14 @@ angular.module('zapp.controllers', [])
 			//console.log(results);
 			$scope.observerActivity = results;
 
-			$scope.startTimeDisplay = $filter('date')($scope.observerActivity.start_time, 'HH:mm');
-			
+			//$scope.startTimeDisplay = $filter('date')($scope.observerActivity.start_time, 'HH:mm');
+			//deal with time values
+			$scope.time_only_start = $filter('date')($scope.observerActivity.start_time, 'HH:mm');
+			$scope.time_only_end = $filter('date')($scope.observerActivity.end_time, 'HH:mm');
+
 			if (!$scope.observerActivity.hasOwnProperty('end_time')) {
 				startClock();	
-			}
-			
+			}	
 		});
 		
 	} else { // if it's new
@@ -294,12 +307,27 @@ angular.module('zapp.controllers', [])
 	    $scope.observerActivity.elapsed_time = false;
 	    stopClock();
 	});
+
+   	// -- deal with conversion from time format to datetime timestamp & back --//
+   	$scope.$watch('time_only_start', function(newValue, oldValue) {
+    	var myd = new Date(parseInt($scope.observerActivity.start_time));
+        var date_only = $filter('date')(myd,'MM-dd-yyyy');
+        $scope.observerActivity.start_time = new Date(date_only + ' ' + newValue).getTime();
+
+   	});
+   	$scope.$watch('time_only_end', function(newValue, oldValue) {
+        var myd = new Date(parseInt($scope.observerActivity.end_time));
+        var date_only = $filter('date')(myd,'MM-dd-yyyy');
+        $scope.observerActivity.end_time = new Date(date_only + ' ' + newValue).getTime();
+   	});
 	
 	$scope.createObsActivity = function(){
 		console.log('createObsActivity called');
 		$scope.submitted = true;
 		// stores to Pouch, and Pouch returns record w/ id and rev
 		$scope.observerActivity.start_time = new Date().getTime();
+		$scope.time_only_start = $filter('date')($scope.observerActivity.start_time, 'HH:mm');
+
 
 		// ---- HANDLE NEW ACTIVITY NAME ------ //
 		if ($scope.observerActivity.activity_name == 'new'){
@@ -313,17 +341,17 @@ angular.module('zapp.controllers', [])
 		var addRecord = function(){
 			observerActivityFactory.add($scope.observerActivity).then(
 				function(res){
-					console.log('record added!');
+					//console.log('record added!');
 					$scope.observerActivity._id = res.id;
 					$scope.observerActivity._rev = res.rev;
 					//check
-					console.log(JSON.stringify($scope.observerActivity));
+					//console.log(JSON.stringify($scope.observerActivity));
 					// now that there's a start time, start the clock
 					startClock();
 					// show status message
 					$scope.status_msg = $scope.observerActivity.activity_name + ", started at "; 
 					$scope.status_msg += $filter('date')($scope.observerActivity.start_time, 'HH:mm:ss');
-					//handleAlert();
+					handleAlert();
 
 				}
 			);
@@ -346,51 +374,12 @@ angular.module('zapp.controllers', [])
 				});
 			},
 			function(){ //no
-				console.log('no BT');
-				console.log(JSON.stringify($scope.observerActivity));
+				//console.log('no BT');
+				//console.log(JSON.stringify($scope.observerActivity));
 				addRecord();
 			}
-			);
-
-
-		/*if (bluetoothSerial.isConnected === true){
-			console.log('observerActivity knows BT is connected');
-			nmeaFactory.getNmeaPacket().then(function(nmeaData){
-				$scope.observerActivity.geolocation = nmeaData;
-				addRecord();
-			},function(){ 
-				console.log('failed w timeout');
-				// no data came in, go ahead and add record anyway
-				console.log($scope.observerActivity);
-				addRecord();
-
-			});
-			// ? time out -- in case bluetooth doesn't give data, don't stall the whole process
-
-		} else {
-			console.log('no BT');
-			console.log(JSON.stringify($scope.observerActivity));
-			addRecord();
-		}*/
-		
-		
-		// observerActivityFactory is using add() function inherited from pouchDbFactory
-		/*observerActivityFactory.add($scope.observerActivity).then(
-			function(res){
-				//console.log(res);
-				$scope.observerActivity._id = res.id;
-				$scope.observerActivity._rev = res.rev;
-				// now that there's a start time, start the clock
-				startClock();
-				// show status message
-				$scope.status_msg = $scope.observerActivity.activity_name + ", started at "; 
-				$scope.status_msg += $filter('date')($scope.observerActivity.start_time, 'HH:mm:ss');
-				//handleAlert();
-
-			}
-		);*/		
+			);		
 	};
-	// NEEDS WORK: bc of time formats, form fields and props won't auto update.
 	$scope.editObsActivity = function(){
 		observerActivityFactory.update($scope.observerActivity).then(
 			function(res){
@@ -402,11 +391,10 @@ angular.module('zapp.controllers', [])
 				} else {
 					$scope.status_msg = "Could not update record.";
 				}
-				//handleAlert();
+				handleAlert();
 			}
 		);
 	};
-
 	$scope.endObsActivity = function(){
 		// to end, just add the end time and edit the record
 		$scope.observerActivity.end_time = new Date().getTime();
@@ -463,12 +451,12 @@ angular.module('zapp.controllers', [])
 		}	
 	};
 	// again, util function that should prob go in a service or something -- scoping issue
-	// var handleAlert = function () {
-	// 	$scope.statusUpdated = true; // css animation.sets bg color in template. 
-	// 	$timeout(function() {
- //            $scope.statusUpdated = false;
- //          }, 3000);
-	// };
+	var handleAlert = function () {
+	 	$scope.statusUpdated = true; // css animation.sets bg color in template. 
+	 	$timeout(function() {
+            $scope.statusUpdated = false;
+           }, 3000);
+	};
 })
 /* --- SIGHTING CONTROLLER --- */
 .controller('SightingController', function (
@@ -479,7 +467,9 @@ angular.module('zapp.controllers', [])
 		$interval,
 		myTimeService,
 		$ionicModal,
-		$timeout) {
+		$timeout,
+		bluetoothFactory,
+		nmeaFactory) {
     $scope.sighting = {record_type: 'sighting'};
     $scope.title = 'Sighting';
     $scope.allPhenotypes = sightingFactory.getAllPhenotypes();
@@ -490,16 +480,19 @@ angular.module('zapp.controllers', [])
     var clockIsRunning = false;
     if ($stateParams.sid){ //existing record
     	// stop the timer if there is one running
-    	console.log('back on page '+ $scope.sighting.elapsed_time);
+    	
     	if (clockIsRunning){
     		stopClock();
     		$scope.sighting.elapsed_time = false;
     	}
-    	console.log('elapsed time cleared: '+ $scope.sighting.elapsed_time);
+    	
     	$scope.submitted = true; //show details only, not start button
     	sightingFactory.findById($stateParams.sid)
 		 .then(function(results){
 			$scope.sighting = results;
+			//deal with time values
+			$scope.time_only_start = $filter('date')($scope.sighting.start_time, 'HH:mm');
+			$scope.time_only_end = $filter('date')($scope.sighting.end_time, 'HH:mm');
 			/*$scope.sighting.phenotypes = [ //test data
     			{id:90, name:'big beak'},
 				{id:44, name:'gray nose'}];*/
@@ -511,6 +504,24 @@ angular.module('zapp.controllers', [])
     	$scope.submitted = false; 
     	$scope.sighting = {record_type: 'sighting'};
     }
+    $scope.$watch('time_only_start', function(newValue, oldValue) {
+    	//console.log('new value!' + newValue);
+        // take the time change and add date info back --> timestamp
+        var myd = new Date(parseInt($scope.sighting.start_time));
+        var date_only = $filter('date')(myd,'MM-dd-yyyy');
+        $scope.sighting.start_time = new Date(date_only + ' ' + newValue).getTime();
+        //console.log($scope.sighting.start_time);
+
+   	});
+   	$scope.$watch('time_only_end', function(newValue, oldValue) {
+   		if (oldValue){
+   			var myd = new Date(parseInt($scope.sighting.end_time));
+        	var date_only = $filter('date')(myd,'MM-dd-yyyy');
+        	$scope.sighting.end_time = new Date(date_only + ' ' + newValue).getTime();
+        	console.log('new timestamp: ' + $scope.sighting.start_time);
+   		}
+       
+   	});
     $scope.setTempPhenotype = function(val){
     	console.log(val);
     	if (!$scope.tempPhenotype){
@@ -521,15 +532,20 @@ angular.module('zapp.controllers', [])
     	//open the phenotype detail box
 		$scope.showPhenoDetail = true;
     };
+    
 	$scope.addPhenotype = function(phenoObj){ //add to this sighting
 		// TODO: remove phenotype choice from dropdown list
 		//if it's new, add it to the list of all
 		if (phenoObj.id == 'new'){
 			// ???? // phenoObj.id = $scope.allPhenotypes.length; // the ids start at 1,not zero
 		}
+		if(!phenoObj.frequency){
+			phenoObj.frequency = 50;
+		}
 		if (!$scope.sighting.phenotypes){
 			$scope.sighting.phenotypes = [];
 		}
+
 		$scope.sighting.phenotypes.push(phenoObj);
 		$scope.status_msg = "Phenotype added: " + phenoObj.name;
 		handleAlert();
@@ -544,19 +560,40 @@ angular.module('zapp.controllers', [])
 		$scope.submitted = true;
 		$scope.start_button = "End Sighting";
 		$scope.sighting.start_time = new Date().getTime();
+		//time only
+		$scope.time_only_start = $filter('date')($scope.sighting.start_time, 'HH:mm');
 
-		sightingFactory.add($scope.sighting).then(
-			function(res){
-				//console.log(res);
-				$scope.sighting._id = res.id;
-				$scope.sighting._rev = res.rev;
-				startClock();
-				// show status message
-				$scope.status_msg = "New sighting started at ";
-				$scope.status_msg += $filter('date')($scope.sighting.start_time, 'HH:mm:ss');
-				handleAlert();
+		var addRecord = function(){
+			sightingFactory.add($scope.sighting).then(
+				function(res){
+					//console.log(res);
+					$scope.sighting._id = res.id;
+					$scope.sighting._rev = res.rev;
+					startClock();
+					// show status message
+					$scope.status_msg = "New sighting started at ";
+					$scope.status_msg += $filter('date')($scope.sighting.start_time, 'HH:mm:ss');
+					handleAlert();
+				}
+			);	
+		};
+
+		// wait for geo data if BT is on
+		bluetoothSerial.isConnected(
+			function(){ //yes
+				nmeaFactory.getNmeaPacket().then(function(nmeaData){
+					$scope.sighting.geolocation = nmeaData;
+					addRecord();
+				},function(){ 
+					//console.log('bluetooth timed out');
+					// no data came in, go ahead and add record anyway
+					addRecord();
+				});
+			},
+			function(){ //no
+				addRecord();
 			}
-		);		
+		);			
 	};
 	$scope.editSighting = function(){
 		sightingFactory.update($scope.sighting).then(
@@ -597,7 +634,7 @@ angular.module('zapp.controllers', [])
 	
 	//private funcs to start/end elapsed time timer
 	var startClock = function(){
-		console.log('Clock STARTED for: '+ $scope.sighting.start_time);
+		//console.log('Clock STARTED for: '+ $scope.sighting.start_time);
 		this.clockIsRunning = true;	
 		this.intervalId = $interval(function() {
 			myTimeService.updateElapsedTime($scope.sighting.start_time,true);					
@@ -605,7 +642,7 @@ angular.module('zapp.controllers', [])
 		
 	};
 	var stopClock = function(){
-		console.log('Clock ENDED for: '+ $scope.sighting.start_time);
+		//console.log('Clock ENDED for: '+ $scope.sighting.start_time);
 		// clear the interval
 		if (this.clockIsRunning === true){
 			$interval.cancel( this.intervalId );
@@ -673,10 +710,13 @@ angular.module('zapp.controllers', [])
 	}
 
 	sightingFactory.getSightings($scope.filterBy,false).then(function(results){
-		//console.log(results);	
+		//console.log(JSON.stringify(results));	
 		$scope.docs = results.rows;
 	});
-})
-.controller('geoController',function(){
+	/*sightingFactory.getSightings($scope.filterBy,false,function(results){
+		console.log('results');
+		console.log(JSON.stringify(results));
+		$scope.docs = results.rows;
+	});*/
 
 });

@@ -4,7 +4,7 @@ angular.module('zapp.services', [])
 // there should be a way to parametize the db name ..! ?
 // also THIS is probably where remote server info should be stored, not just in ls
 .factory('pouchInstance', function (pouchdb) {
-	return pouchdb.create('devicedb0721');
+	return pouchdb.create('devicedb0801');
 })
 // Util functions for pouch
 .factory('pouchDbFactory', function (pouchInstance,$q) {
@@ -31,7 +31,7 @@ angular.module('zapp.services', [])
 			return this.db.get(id);
 		},
 		numDocs: function(){
-			// returns a promise so .then() can be uses in return val
+			// returns a promise so .then() can be used in return val
 			var deferred = $q.defer();
 			this.db.allDocs({}).then(function(response) {
 		        //console.log('f num ' + response.total_rows);
@@ -208,11 +208,12 @@ angular.module('zapp.services', [])
 	var sFactory = Object.create(pouchDbFactory);
    
 	sFactory.getSightings = function (filterby,limit) {
-		//console.log('getSightings');
+		console.log('getSightings by ' + filterby);
 		// defaults to getting all records
 	    var dbmap = function(doc) {
             if(doc.record_type == 'sighting') {
 	            emit(doc.start_time, {
+	            	record_type:doc.record_type,
 	            	sighting_id:doc.sighting_id,
 					start_time:doc.start_time,
 					end_time:doc.end_time,
@@ -222,12 +223,12 @@ angular.module('zapp.services', [])
 	            });
 	        }
         };
-
        	switch(filterby){
 			case 'completed':
 				dbmap = function(doc) {
 		            if(doc.record_type == 'sighting' && doc.end_time) {
 			            emit(doc.start_time, {
+			            record_type:doc.record_type,
 						sighting_id:doc.sighting_id,
 						start_time:doc.start_time,
 						end_time:doc.end_time,
@@ -242,6 +243,7 @@ angular.module('zapp.services', [])
 				dbmap = function(doc) {
 		            if(doc.record_type == 'sighting' && typeof doc.end_time == 'undefined') {
 			            emit(doc.start_time, {
+			            record_type:doc.record_type,
 						sighting_id:doc.sighting_id,
 						start_time:doc.start_time,
 						end_time:doc.end_time,
@@ -253,10 +255,14 @@ angular.module('zapp.services', [])
 		        };
 		}
 		var options = {reduce: false, descending:true};
-		// if (parseInt(limit)){
-		// 	options.limit = parseInt(limit);
-		// }
+		if (parseInt(limit)){
+		 	options.limit = parseInt(limit);
+		}
+		//console.log('options '+ JSON.stringify(options));
+		//console.log('about to query');
+		
         return pouchDbFactory.db.query({map: dbmap}, options);
+        
 	};
 	sFactory.allPhenotypes = {
 		"Flank fringe color": [
@@ -321,87 +327,22 @@ angular.module('zapp.services', [])
 		  ]		
 	};
 	sFactory.getAllPhenotypes = function(){
-		return this.allPhenotypes;
-		// fake data
-		/*return [
-			{id:1, name:'light muzzle'},
-			{id:2, name:'mohawk'},
-			{id:3, name:'small pink swelling'}
-		];*/
-		// kenny's initial data
-		/*return {
-		  "Flank fringe color": [
-		    "not visible",
-		    "black",
-		    "darker than back",
-		    "lighter than back"
-		  ],
-		  "Nape frill shape": [
-		    "not visible",
-		    "visible, small",
-		    "prominent, curled"
-		  ],
-		  "Nape frill color": [
-		    "black",
-		    "darker than back",
-		    "lighter than back",
-		    "yellow"
-		  ],
-		  "Hair of ventral surfaces": [
-		    "same color as back",
-		    "lighter than back",
-		    "contrasting, light",
-		    "clear yellow"
-		  ],
-		  "Cheek color": [
-		    "grey, little contrast",
-		    "contrasting, lighter",
-		    "yellowish, strong contrast"
-		  ],
-		  "Tail carriage": [
-		    "arched, no break",
-		    "broken, prox. horiz.",
-		    "broken, prox. up.",
-		    "recurved, riding whip"
-		  ],
-		  "Paracallosal color": [
-		    "uniform dark",
-		    "mottled, mainly dark",
-		    "mottled, mainly pink",
-		    "uniform light"
-		  ],
-		  "Circumorbital skin": [
-		    "light eyelids only",
-		    "some light below eye",
-		    "pink spectacles"
-		  ],
-		  "Face patches": [
-		    "absent",
-		    "slight",
-		    "present"
-		  ],
-		  "Mohawk": [
-		    "none",
-		    "some",
-		    "marked"
-		  ],
-		  "Nose tip": [
-		    "projects past lip",
-		    "about level with lip",
-		    "clearly behind lip"
-		  ]
-		};*/
+		// check if they are stored in localstorage
+		/*if (localStorage.getItem('allPhenotypes')){
+			this.allPhenotypes = JSON.parse(localStorage.getItem('allPhenotypes'));
+		} else {
+			localStorage.setItem('allPhenotypes',JSON.stringify(this.allPhenotypes));
+		}*/
+		return this.allPhenotypes;		
+	};
+	sFactory.createNewPhenotype = function(){
+		// need a way to input multidimensional values
 	};
 	// return the whole factory
     return sFactory;
 })
-.factory('timerDemoService', function(){
-	/*return function(){
-        	//s.$broadcast('timer-clear');
-        	s.$broadcast('timer-start');
-        	s.timerRunning = true;
-    	
-    };*/
+/*.factory('timerDemoService', function(){
+	
     return {
     	sayHi: function(s){
     		console.log(s.testTime);
@@ -411,7 +352,7 @@ angular.module('zapp.services', [])
 
     	}
     };
-})
+})*/
 // service function for elapsed time processing
 .factory('myTimeService', function($filter,$rootScope,$interval) {
         return {
@@ -512,10 +453,6 @@ angular.module('zapp.services', [])
 		
 		// called by the outside world:
 		getNmeaPacket: function(){
-			/*
-			// also need something from deferred/promise if it doesn't work! 
-			    // ex: deferred.reject('Greeting ' + name + ' is not allowed.');
-			*/
 			var deferred = $q.defer();
 			// set up to use the parser
 			// so it can run parse() func w/o access any refs to 'this' in the func
@@ -839,6 +776,7 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 			// if isEnabled returns failure, this function is called:
 			var notEnabled = function() {
 				console.log("Bluetooth is not enabled.");
+
 			};
 			
 			// if isEnabled returns success, this function is called:

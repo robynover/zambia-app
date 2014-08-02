@@ -18,17 +18,32 @@
   <div class="button button-clear" ng-click="closeModal()"><span class="icon ion-close"></span></div>
 </ion-header-bar>
 <ion-content>
+
+
  	<div ng-repeat="(category,item) in allPhenotypes">
-	<div class="item item-divider item-icon-left" ng-click="showSubCats = ! showSubCats">
+	<div class="item item-divider item-icon-left modal-select-divider" ng-click="showSubCats = ! showSubCats">
 		<i class="icon" ng-class="{'ion-ios7-arrow-down' : showSubCats, 'ion-ios7-arrow-right': !showSubCats}"></i>
-		{{category}}</div> 
+		{{category}}
+	</div> 
 	<div ng-show="showSubCats">
 		<ul>
 			<li ng-click="setTempPhenotype('{{category}} > {{pname}}')" ng-repeat="pname in item" class="item" >{{pname}}
 			</li>
 		</ul> 
 	</div>
-</div>
+	</div>
+
+	<!-- new phenotype -->
+
+	<!-- <div class="item item-divider item-icon-left modal-select-divider" ng-click="showForm =!showForm">
+		<i class="icon ion-ios7-plus"></i>New Phenotype</div>
+	<div id="new_phenotype_form" ng-show="showForm">
+		<input class="new_pheno_input" id="new_phenotype_field" ng-model="newPheno" type="text" placeholder="New Phenotype" />
+		<button ng-click="setTempPhenotype(newPheno)" class="button new_pheno_button button-small">Add New</button>
+	</div> -->
+	<!-- end new phenotype -->
+	<!-- spacer for UI issues -->
+	<div class="item item-divider modal-select-divider">&nbsp;</div>
 	
 </ion-content>
 </div> 

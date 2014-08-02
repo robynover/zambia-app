@@ -21,7 +21,7 @@
 
 		<div id="new_activity_name" ng-show="observerActivity.activity_name == 'new' "> <!-- hidden by default-->
 
-			<input type="text" id="new_activity_field" value="New Activity" />
+			<input type="text" id="new_activity_field" placeholder="New Activity" />
 			<!-- <button id="new_act_btn" class="button item-icon-left ion-plus button-dark button-small regular_btn"> Add</button> -->
 
 		</div>
@@ -38,14 +38,14 @@
 		<!--start time -->
 		<div class="start_time" ng-model="observerActivity.start_time" >
 			<p><label>Start Time </label>
-			<!-- {{observerActivity.start_time | strtodate: 'HH:mm:ss'}}  -->
-			{{observerActivity.start_time | date: 'HH:mm'}}
+				{{time_only_start}}
 				<a ng-click="showStartInput = ! showStartInput" class="edit_observerActivity_start inline_edit_btn button button-small">edit time</a></p>
 				<!-- show input form on edit -->
 				<!-- <input ng-model = "observerActivity.start_time" my-time  value="14:30:00"/> -->
 			<!-- hidden by default -->
 			<div ng-show="showStartInput" id="observerActivity_start_input" class="time_input observerActivity_edit_time" > 
-				<input id="start_time" ng-model="observerActitivity" ng-change="fixTime($event,'start')" type="time" value="{{observerActivity.start_time | strtodate: 'HH:mm' }}" />
+				<input id="start_time" ng-model="time_only_start" type="time" 
+				value="{{observerActivity.start_time | strtodate: 'HH:mm' }}" />
 			</div>
 		</div>
 		<!-- elapsed time -->

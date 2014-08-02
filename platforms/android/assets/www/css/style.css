@@ -59,9 +59,6 @@ textarea, input[type="datetime"], input[type="time"], input[type="text"]{
 	padding: 1em;
 	margin-top:1em;
 }
-#sighting_phenotype_area h4.phenotype_name{
-	/*color: #4a87ee;*/
-}
 
 /* -- css from dashboard experimental page -- */
 .dashboard .col{
@@ -75,11 +72,15 @@ textarea, input[type="datetime"], input[type="time"], input[type="text"]{
 .dash_today{
 	text-align: center;
 }
+.dash_box h3{
+	line-height: 1.7em;
+}
 .sighting_dash .sighting_stop_btn{
 	color: red;
 	border-radius: 50%;
 	
 }
+
 .dash_start_time{
 	font-size: 1em;
 	margin-bottom: 1em;
@@ -106,6 +107,29 @@ input[type="range"]{
 	border: none;
 	/*border-left: none;
 	border-right: none;*/
+}
+.modal-select-divider{
+	font-size: 1.3em;
+	font-weight: normal;
+	padding-top: 1em;
+	padding-bottom: 1em;
+}
+#new_phenotype_form {
+	/*padding:1em;*/
+	/*background-color: #66cc33;*/
+}
+.new_pheno_input{
+	display:block; 
+	float:left;
+	width:inherit;
+	min-width: 50%;
+	padding-left:1em;
+	margin:1em;
+}
+.new_pheno_button{
+	display:block; 
+	float:right;
+	margin: 1em;
 }
 
 /*for fading alert messages*/
@@ -147,3 +171,5 @@ input[type="range"]{
 #save_remote_btn{
 	color: #333 !important;
 }
+
+

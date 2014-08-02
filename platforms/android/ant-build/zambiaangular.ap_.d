@@ -51,6 +51,7 @@
 /Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/assets/www/lib/angular-timer.min.js \
 /Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/assets/www/lib/ionic \
 /Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/assets/www/lib/pouchdb-2.2.0.min.js \
+/Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/assets/www/lib/pouchdb-2.2.3.min.js \
 /Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/assets/www/lib/ionic/css \
 /Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/assets/www/lib/ionic/fonts \
 /Users/rover/_dev/phonegap_projects/zambia-app/platforms/android/assets/www/lib/ionic/js \

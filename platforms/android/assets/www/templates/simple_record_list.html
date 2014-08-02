@@ -2,7 +2,8 @@
 	<div ng-show="!record.docs"><i class="icon ion-loading-c"></i></div>
 	<li ng-repeat="doc in record.docs">
 		<span ng-show="doc.value.activity_name"><b>{{doc.value.activity_name}}&nbsp;</b></span>
-		<span ng-show="doc.value.record_type == 'sighting' "><b>Sighting&nbsp;</b></span>
+		<span ng-show="doc.value.record_type == 'sighting' "><b>Sighting&nbsp;
+			{{doc.value.start_time | date: "MMM d"}}</b></span>
 		{{doc.value.start_time  | date : "HH:mm"}}
 		{{doc.value.end_time ? ' - ' : '' }} {{doc.value.end_time | date : "HH:mm"}}
 
