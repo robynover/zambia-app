@@ -1,0 +1,47 @@
+<div ng-model="record">
+	<div ng-show="!record.docs"><i class="icon ion-loading-c"></i></div>
+	<li ng-repeat="doc in record.docs">
+		<span ng-show="doc.value.activity_name"><b>{{doc.value.activity_name}}&nbsp;</b></span>
+		<span ng-show="doc.value.record_type == 'sighting' "><b>Sighting&nbsp;
+			{{doc.value.start_time | date: "MMM d"}}</b></span>
+		{{doc.value.start_time  | date : "HH:mm"}}
+		{{doc.value.end_time ? ' - ' : '' }} {{doc.value.end_time | date : "HH:mm"}}
+
+	</li>
+	<p ng-show="record.docs && !record.docs[0]">No records yet</p>
+
+</div>
+
+
+
+<!-- hello 
+
+    Member: <member model="member"></member>
+    <ul>
+        <li ng-repeat="child in member.children">
+            Child {{$index}}: <member model="child"></member>   
+        </li>
+    </ul>
+
+    <input type="button" ng-click="deleteChild()" value="Delete Child"/>
+    <input type="button" ng-click="addChild()" value="Add Child"/>
+	{{member.name}}
+	{{member.children[1].name}} -->
+
+<!-- <ul>
+
+	<li  ng-repeat="item in docs"> 
+
+		<a href="#/{{base_url}}/{{item.id}}" class="item" >
+			<span ng-show="item.value.activity_name"><b>{{item.value.activity_name}}&nbsp;</b></span>
+			<span ng-show="item.value.record_type == 'sighting' "><b>Sighting&nbsp;</b></span>
+			
+			{{item.value.start_time | date : "HH:mm"}} 
+			{{item.value.end_time ? ' - ' : ' ... in progress' }} {{item.value.end_time | date : "HH:mm"}}
+			&nbsp; 
+			{{item.value.note}} 
+			
+			<i class="icon ion-ios7-arrow-right "></i>
+		</a>
+	</li>
+</ul> -->

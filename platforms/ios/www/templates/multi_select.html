@@ -1,0 +1,114 @@
+	
+	<!-- <div class="list" ng-model="allPhenotypes">
+		<div >
+			<label class="item item-input item-select" ng-repeat="(category,item) in allPhenotypes">
+			<div class="input-label" >{{category}}</div>
+			<select>
+				<option data-parent-cat="{{category}}" value="{{category}}: {{pname}}" ng-repeat="pname in item">{{pname}}</option>
+			</select>
+			</label>
+		</div>
+	</div> -->
+
+<!-- TODO: close all open collapsibles when modal closes  ... maybe close when others open also -->
+
+<div class="modal">
+<ion-header-bar>
+  <h1 class="title">Choose Phenotype</h1>
+  <div class="button button-clear" ng-click="closeModal()"><span class="icon ion-close"></span></div>
+</ion-header-bar>
+<ion-content>
+
+
+ 	<div ng-repeat="(category,item) in allPhenotypes">
+	<div class="item item-divider item-icon-left modal-select-divider" ng-click="showSubCats = ! showSubCats">
+		<i class="icon" ng-class="{'ion-ios7-arrow-down' : showSubCats, 'ion-ios7-arrow-right': !showSubCats}"></i>
+		{{category}}
+	</div> 
+	<div ng-show="showSubCats">
+		<ul>
+			<li ng-click="setTempPhenotype('{{category}} > {{pname}}')" ng-repeat="pname in item" class="item" >{{pname}}
+			</li>
+		</ul> 
+	</div>
+	</div>
+
+	<!-- new phenotype -->
+
+	<!-- <div class="item item-divider item-icon-left modal-select-divider" ng-click="showForm =!showForm">
+		<i class="icon ion-ios7-plus"></i>New Phenotype</div>
+	<div id="new_phenotype_form" ng-show="showForm">
+		<input class="new_pheno_input" id="new_phenotype_field" ng-model="newPheno" type="text" placeholder="New Phenotype" />
+		<button ng-click="setTempPhenotype(newPheno)" class="button new_pheno_button button-small">Add New</button>
+	</div> -->
+	<!-- end new phenotype -->
+	<!-- spacer for UI issues -->
+	<div class="item item-divider modal-select-divider">&nbsp;</div>
+	
+</ion-content>
+</div> 
+
+	<!-- saving some alternatives ... -->
+	<!--  --> 
+	
+	<!--
+	//uses a css snippet from bootstrap to make the collapsing 
+	<div class="list">
+	      <div class="item item-divider item-icon-left" ng-click="section_click('allergies')" ng-if="patient.allergies" my-patient-section>
+       		<i class="icon ion-ios7-flag-outline"></i>
+		      Allergies
+      		<span class="badge badge-positive">{{patient.allergies.length}}</span>
+	      </div>
+	      
+	      <div collapse="!show_section.allergies">
+   	      <div ng-repeat="item in patient.allergies" class="item">
+	           {{item.label}}
+	        </div>
+	      </div>
+	    </div>
+
+
+	-->
+
+	<!-- 
+	// this one requires angular.ui.bootstrap
+	<accordion close-others="">
+    <accordion-group  heading="Static Header, initially expanded" >
+      This content is straight in the template.
+    </accordion-group>
+    <accordion-group heading="{{category}}" ng-repeat="(category,item) in allPhenotypes">
+      	<ul>
+		 <li ng-repeat="pname in item"><a href="" class="item" >{{pname}}</a></li>
+		</ul>
+    </accordion-group>
+    
+  </accordion> -->
+
+
+	<!--
+
+
+	<div data-ng-repeat="(letter, authors) in repeaterObject">
+    <div class="item item-divider">
+        {{letter}}
+    </div>
+    <ul>
+        <li ng-repeat="author in authors">{{author.firstName}} {{author.lastName}}</li>
+    </ul>
+</div>
+-->
+
+	<!-- <ul>
+		<li ng-repeat="item in docs"> 
+			<a href="#/{{base_url}}/{{item.id}}" class="item item-icon-right item-icon-left" >
+				<span ng-show="item.value.activity_name"><b>{{item.value.activity_name}}&nbsp;</b></span>
+				<i ng-show="!item.value.end_time" class="icon ion-ios7-timer-outline balanced"></i>
+				
+				{{item.value.start_time | date : "HH:mm"}} 
+				{{item.value.end_time ? ' - ' : ' ... in progress' }} {{item.value.end_time | date : "HH:mm"}}
+				&nbsp; 
+				{{item.value.note}} 
+				<i class="icon ion-ios7-arrow-right "></i>
+			</a>
+		</li>
+	</ul> -->

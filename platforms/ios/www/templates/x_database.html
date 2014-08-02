@@ -1,0 +1,13 @@
+<div class="content_text_block settings_pg" >
+	<div class="status_msg" ng-class="{'alert-active':statusUpdated}"> <!-- ng-show="status_msg" -->
+		<p>{{status_msg}}</p>
+	</div>
+	<p><b>Remote Server:</b>{{remoteServer}}</p>
+	<p><b>Remote Database:</b>{{remoteDbName}}</p>
+
+	<button id="configButton" class="button icon ion-ios7-cloud-upload-outline icon-left button-dark" ng-click="saveToRemote()"> Save to Remote</button>
+
+</div>
+
+
+

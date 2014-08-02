@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <title></title>
+    <link href="lib/ionic/css/ionic.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+
+    <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
+    <link href="css/ionic.app.css" rel="stylesheet">
+    -->
+<!--
+  ionic.bundle.js is a concatenation of:
+  ionic.js
+  angular.js
+  angular-animate.js
+  angular-sanitize.js
+  angular-ui-router.js
+  ionic-angular.js
+  -->
+    <!-- ionic/angularjs js -->
+  <script src="lib/ionic/js/ionic.bundle.js"></script>
+	<script type="text/javascript" src="lib/angular-route.js"></script>
+	<script type="text/javascript" src="lib/pouchdb-2.2.0.min.js"></script>
+	<script type="text/javascript" src="lib/angular-pouchdb.js"></script>
+  <script type="text/javascript" src="lib/angular-timer.min.js"></script>
+  
+
+    <!-- cordova script (this will be a 404 during development) -->
+    <script src="cordova.js"></script>
+
+    <!-- app js -->
+    <script src="js/app.js"></script>
+    <script src="js/controllers.js"></script>
+    <script src="js/directives.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/filters.js"></script>
+  </head>
+  <body ng-app="zapp">
+
+    <ion-side-menus>
+	        <!-- Main Content (in the side-menu page layout) -->
+	        <ion-side-menu-content>        
+	            <main-header></main-header> <!-- from template -->
+
+              <ion-content>
+	                <div ui-view></div>  <!-- from routes to templates -->
+	            </ion-content> 
+              <!-- footer w/ back button: an option -->
+            <!-- <ion-footer-bar align-title="left" class="bar-dark">
+              <div class="buttons">
+                <button class="button button-small button-clear icon ion-ios7-arrow-back" ng-click=""></button>
+              </div>  
+            </ion-footer-bar>  --> 
+            <div class="tabs tabs-icon-top">
+
+              <a href="#" class="tab-item"><i class="icon ion-ios7-home-outline"></i>Dashboard</a>
+              
+              <a href="#/activity_records/" class="tab-item" >
+                <i class="icon ion-ios7-calendar-outline"></i>Observer Activity Logs</a>
+
+              <a href="#/sightings/" class="tab-item"><i class="icon ion-ios7-eye-outline"></i>Sightings</a>
+          
+              <a href="#/settings" class="tab-item"><i class="icon ion-ios7-gear-outline"></i>Settings</a>
+
+            </div>
+	        </ion-side-menu-content>
+
+	        <!-- Left slide-out menu -->
+	        <div>
+	         <!-- <side-menu-nav></side-menu-nav> --> <!--side_menu_nav.html template-->
+	        </div>
+	    </ion-side-menus>
+  </body>
+</html>

@@ -1,0 +1,83 @@
+<div class="content_text_block" >
+	<!-- start time recorded automatically -->
+	<!-- choose activity from list or add a new one -->
+	<h2><span ng-show="!submitted">New </span>{{title}}</h2>
+	<p ng-model="observerActivity.activity_name" ng-show="observerActivity.activity_name && submitted"><b>{{observerActivity.activity_name}}</b></p>
+	<!-- Show only when this is a new activity -->
+	<section id="start_new_activity" class="start_new_record" ng-hide="submitted">
+		<!-- activities drop-down -->
+		<div class="list">
+			<label class="item item-input item-select">
+				<div class="input-label">
+					Activity
+				</div>
+				<select id="activity_choice" ng-model="observerActivity.activity_name" >
+					<option class ="option" ng-repeat="activity in activities">{{ activity }}</option>
+					<option class="option" value="new">New Activity</option>
+				</select>   
+			</label>
+		</div>
+
+
+		<div id="new_activity_name" ng-show="observerActivity.activity_name == 'new' "> <!-- hidden by default-->
+
+			<input type="text" id="new_activity_field" placeholder="New Activity" />
+			<!-- <button id="new_act_btn" class="button item-icon-left ion-plus button-dark button-small regular_btn"> Add</button> -->
+
+		</div>
+		
+		<button ng-click="createObsActivity()" id="start_activity_btn" class="button button-balanced ion-chevron-right icon-right regular_btn"> Start</button>
+	</section>
+	<!-- end start_new_activity section -->
+	<div id="activity_status_msg" ng-class="{'alert-active':statusUpdated}" class="status_msg" ng-show="submitted && status_msg">
+		<p>{{status_msg}}</p>
+	</div>
+	<div id="observer_activity_detail" ng-show="submitted">
+		
+		<!-- {{observerActivity.start_time}} -->
+		<!--start time -->
+		<div class="start_time" ng-model="observerActivity.start_time" >
+			<p><label>Start Time </label>
+				{{time_only_start}}
+				<a ng-click="showStartInput = ! showStartInput" class="edit_observerActivity_start inline_edit_btn button button-small">edit time</a></p>
+				<!-- show input form on edit -->
+				<!-- <input ng-model = "observerActivity.start_time" my-time  value="14:30:00"/> -->
+			<!-- hidden by default -->
+			<div ng-show="showStartInput" id="observerActivity_start_input" class="time_input observerActivity_edit_time" > 
+				<input id="start_time" ng-model="time_only_start" type="time" 
+				value="{{observerActivity.start_time | strtodate: 'HH:mm' }}" />
+			</div>
+		</div>
+		<!-- elapsed time -->
+		<div class="elapsed_time" ng-show ="!observerActivity.end_time" > <!-- && observerActivity.elapsed_time -->
+        	<p>Elapsed time<br/><span class="time_display">{{observerActivity.elapsed_time}}</span>
+        </p>
+
+        	<button ng-click="endObsActivity()" id="end_activity_btn" class="button button-small button-assertive ion-stop icon-left regular_btn">End Activity</button>
+    	</div>
+		<!-- activity end_time -->
+		<div class="end_time" ng-show="observerActivity.end_time">
+	        <p><label>End Time </label>
+	        {{observerActivity.end_time | strtodate: 'HH:mm'}} 
+	            <a ng-click="showEndInput = ! showEndInput" class="edit_observerActivity_end inline_edit_btn button button-small">edit time</a></p>
+	        <!-- show input form on edit -->
+	        
+	        <!-- hidden by default -->
+	        <div ng-show="showEndInput" id="observerActivity_end_input" class="time_input  observerActivity_edit_time"> 
+	            <input id="end_time"  ng-blur="fixTime($event,'end')" type="time" value="{{observerActivity.end_time | strtodate: 'HH:mm'}}" />
+	        </div>
+	    </div>
+	    <!--
+	    NB: content editable element instead ?!
+		<p contenteditable="true" class="notes">{{notes}}</p>-->
+
+    	<h4>Notes</h4>
+    	<textarea class="notes_edit" ng-model="observerActivity.activity_notes">{{observerActivity.activity_notes}}</textarea>
+    	<!-- Update -->
+    	<button ng-click="editObsActivity()" id="edit_activity_btn" class="button button-positive ion-pencil icon-left regular_btn">Update</button>
+    	
+    	
+
+	</div> <!-- end observer_activity_detail -->
+
+</div>
