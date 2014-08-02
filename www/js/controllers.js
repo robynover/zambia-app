@@ -337,11 +337,15 @@ angular.module('zapp.controllers', [])
 
 		// ---- HANDLE NEW ACTIVITY NAME ------ //
 		if ($scope.observerActivity.activity_name == 'new'){
+			//uppercase
+			var newact = new_activity_field.value.charAt(0).toUpperCase() + new_activity_field.value.slice(1);
 			// add the new activity to the list and select it
-			$scope.activities.push(new_activity_field.value);
+			$scope.activities.push(newact);
+			$scope.activities.sort();
 			//$scope.observerActivity.activity_name = $scope.activities[$scope.activities.length - 1];
-			$scope.observerActivity.activity_name = new_activity_field.value;
-			// TODO: add it to the master list of activities (from local storage ?)
+			$scope.observerActivity.activity_name = newact;
+			// save new activities array to local storage (JSON stringify required)
+			localStorage.setItem('allActivities',JSON.stringify($scope.activities));
 		} 
 
 		var addRecord = function(){

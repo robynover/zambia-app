@@ -201,6 +201,10 @@ angular.module('zapp.services', [])
 		    'Camp: data entry'];
 		
 	oaFactory.getAllActivities = function () {
+		if (localStorage.getItem('allActivities')){
+			this.allActivities = JSON.parse(localStorage.getItem('allActivities'));
+		}
+		this.allActivities.sort();
     	return this.allActivities;
 	};
 
