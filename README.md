@@ -29,10 +29,11 @@ On start-up, a dashboard screen shows you the most recent completed and in-progr
 - Are the records stored to CouchDB accurate? Meaningful? Does viewing the Couch interface in the browser give you a sense of the data you've collected that day? A good sense?
 - How is bluetooth working? Are you experiencing connection problems? Is geodata stored with the records when you are connected to bluetooth (visible on Couch)?
 - Battery life. Can the Android/iOS and GPS devices make it through the day?
-
-If you have not yet installed PhoneGap, see <http://ethoinformatics.org/internal/2014/02/05/phonegap-notes/> 
+ 
 
 ##To set up a PhoneGap project using these files:
+
+If you have not yet installed PhoneGap, see <http://ethoinformatics.org/internal/2014/02/05/phonegap-notes/>
 
 1. From the command line, navigate to the folder where you'd like the PhoneGap project to reside and run: 
 
