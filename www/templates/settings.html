@@ -1,11 +1,11 @@
 <div class="content_text_block settings_pg" >
 	<div class="button-bar">
-	  <a class="button button-small" ng-class="{'button-dark': db }" ng-click="db = true">Database</a>
-	  <a class="button button-small" ng-class="{'button-dark': !db }" ng-click="db = false">Bluetooth</a>
+	  <a class="button button-small" ng-class="{'button-dark': db }" ng-click="db = true; statusUpdated = false">Database</a>
+	  <a class="button button-small" ng-class="{'button-dark': !db }" ng-click="db = false; statusUpdated = false">Bluetooth</a>
 	 
 	</div>
-	<div class="status_msg" ng-class="{'alert-active':statusUpdated}"> <!-- ng-show="status_msg" -->
-		<p>{{status_msg}}</p>
+	<div class="status_msg" ng-class="{'alert-active':statusUpdated}"> 
+		<p>{{ status_msg || btConnectionStatus }}</p>
 	</div>
 	<!-- DATABASE SECTION -->
 	<section ng-show="db">

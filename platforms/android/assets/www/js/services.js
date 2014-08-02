@@ -811,6 +811,7 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 				}, 
 				connect: function(deviceAddress){
 					console.log('connect called');
+					//$rootScope.btDeviceName = deviceAddress;
 					// attempt to connect
 					bluetoothSerial.connect(
 						deviceAddress,  // device to connect to
@@ -833,7 +834,7 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 					console.log('connectSuccess func called');
 					$rootScope.$broadcast('bt-connected');
 					$rootScope.subscriberRegistry = {};
-					//double check
+					//debug: double check
 					bluetoothSerial.isConnected(
 							function(){console.log('connectCheck: YES');},
 							function(){console.log('connectCheck: NO');}
@@ -851,7 +852,7 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 					console.log('fail');
 				},
 				dataHandler: function(data){
-					console.log('********* DATA: ' + data);
+					//console.log('********* DATA: ' + data);
 					//console.log('d');
 					if ( Object.keys($rootScope.subscriberRegistry).length > 0 ){
 						//console.log(' ========= SUBSCRIBERS: ============ ');
@@ -880,7 +881,7 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 			console.log('remove subscriber from bluetoothFactory');
 			// remove from registry w/ id #
 			delete $rootScope.subscriberRegistry[id];	
-		},
+		}
 		/*connect: function (deviceAddress) {
 			console.log('connect called from factory. ... device address: ' + deviceAddress);
 			// here's the real action of the manageConnection function:

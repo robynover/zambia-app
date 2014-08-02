@@ -43,43 +43,57 @@ angular.module('zapp.controllers', [])
 	});
 
 })
-.controller('BluetoothController',function($scope,bluetoothFactory,nmeaFactory){
-	$scope.greeting = "hello"; //control var
+.controller('BluetoothController',function($rootScope,$scope,bluetoothFactory,nmeaFactory){
+	//$scope.greeting = "hello"; //control var
 
 	$scope.nmeaPacket = [];
 	$scope.firstSentenceType = false;
 	$scope.lastCompletePacket = [];
 	$scope.lastSaveTime = new Date().getTime();
+	$scope.currentDevice = {};
+
 
 	//see if it's already on.
 	bluetoothSerial.isConnected(
-			function(){
-				console.log('bluetooth is ON!');
-			},
-			function(){
-				console.log('bluetooth is OFF');
+		function(){
+			console.log('bluetooth is CONNECTED!');
+			//if device name is available in local scope, use that 
+			if (!$scope.currentDevice.name){
+				console.log('root scope current device:' + $rootScope.btDeviceName);
+				$scope.$apply(function(){
+					$scope.currentDevice.name = $rootScope.btDeviceName;
+					$rootScope.btConnectionStatus = 'Connected to '+ $scope.currentDevice.name;
+					$scope.status_msg = 'Connected to '+ $scope.currentDevice.name;
+					$scope.bluetoothConnected = true;
+				});	
 			}
+			
+			console.log('current device:' + $scope.currentDevice.name);
+		},
+		function(){
+			console.log('bluetooth is NOT CONNECTED');
+		}
 	);
 
 	$scope.$on('bt-connected',function(){
 		$scope.$apply(function(){
 			$scope.btConnectionStatus = 'Connected to '+ $scope.currentDevice.name;
 			//$rootScope.bluetoothConnected = true;
-			//$scope.bluetoothConnected = true;
+			$scope.bluetoothConnected = true;
 		});
 	});
 	$scope.$on('bt-connection-fail',function(){
 		$scope.$apply(function(){
 			$scope.btConnectionStatus = 'Could not connect';
 			//$rootScope.bluetoothConnected = false;
-			//$scope.bluetoothConnected = false;
+			$scope.bluetoothConnected = false;
 		});	
 	});
 	$scope.$on('bt-disconnected',function(){
 		$scope.$apply(function(){
 			$scope.btConnectionStatus = 'Disconnected from ' + $scope.currentDevice.name;
 			//$rootScope.bluetoothConnected = false;
-			//$scope.bluetoothConnected = false;
+			$scope.bluetoothConnected = false;
 		});	
 	});
 
@@ -96,6 +110,8 @@ angular.module('zapp.controllers', [])
 
 	$scope.connectToBt = function(){
 		$scope.btConnectionStatus = 'Connecting ...';
+		$rootScope.btDeviceName = $scope.currentDevice.name;
+
 		//console.log('connect to bt. device: ' + $scope.currentDevice.address + ' id: '+$scope.currentDevice.id);
 		//console.log(JSON.stringify($scope.currentDevice));
 		//bluetoothFactory.connect($scope.currentDevice.id); // factory(ies) takes care of all data processing

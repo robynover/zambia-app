@@ -168,7 +168,7 @@ input[type="range"]{
 	padding-top: 1em;
 	margin-top: 1em;
 }
-#save_remote_btn{
+#save_remote_btn, #connect_bluetooth_btn{
 	color: #333 !important;
 }
 .notes_edit{

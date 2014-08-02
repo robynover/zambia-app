@@ -11,7 +11,8 @@
 
 <!-- TODO: toggle between connect/disconnect -->
 <!-- <button class="button" ng-click="connectToBt()">{{bluetoothConnected ? 'Disconnect' : 'Connect' }}</button> --> 
-<button class="button" ng-click="connectToBt()">Connect</button>
+<button class="button button-calm" id="connect_bluetooth_btn" ng-click="connectToBt()" >
+{{!bluetoothConnected ? 'Connect' : 'Disconnect' }}</button>
 <p>{{btConnectionStatus}}</p>
 
 
