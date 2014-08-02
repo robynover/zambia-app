@@ -8,6 +8,7 @@
 		{{doc.value.end_time ? ' - ' : '' }} {{doc.value.end_time | date : "HH:mm"}}
 
 	</li>
+	<p ng-show="record.docs && !record.docs[0]">No records yet</p>
 
 </div>
 

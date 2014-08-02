@@ -171,5 +171,8 @@ input[type="range"]{
 #save_remote_btn{
 	color: #333 !important;
 }
-
+.notes_edit{
+	min-height:10em;
+	border: 1px solid #ccc;
+}
 

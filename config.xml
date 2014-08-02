@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <widget id="com.ionicframework.zambiaangular705012" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-  <name>zambia-angular</name>
+  <name>ZambiaTrack</name>
   <description>
-        An Ionic Framework and Cordova project.
-    </description>
-  <author email="hi@ionicframework" href="http://ionicframework.com/">
-      Ionic Framework Team
+      Ethoinformatics field-based data tracking app   
+  </description>
+  <author email="robyn@ethoinformatics.org" href="http://ethoinformatics.org/">
+      Robyn Overstreet, Ethoinformatics Team, NYU, UT, WUSTL
     </author>
   <content src="index.html"/>
   <access origin="*"/>

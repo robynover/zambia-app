@@ -15,7 +15,7 @@ angular.module('zapp.controllers', [])
 	};
 	var d = new Date().getTime();
 	$scope.date_today = $filter('date')(d, 'MMMM d, yyyy');
-	//$scope.time_now = $filter('date')(d, 'HH:mm');
+	$scope.time_now = $filter('date')(d, 'HH:mm');
 	$scope.goBack = function() {
 	  window.history.back();
 	};
@@ -26,13 +26,16 @@ angular.module('zapp.controllers', [])
 	$scope.activitiesCompleted = {};
 	observerActivityFactory.getObserverActivityRecords("inprogress",3).then(function(results){		
 		$scope.activitiesInProgress.docs = results.rows;
-		//console.log(results.rows);
+		console.log('obs act in progress');
+		console.log(JSON.stringify(results.rows));
 	});
 	observerActivityFactory.getObserverActivityRecords("completed",3).then(function(results){		
 		$scope.activitiesCompleted.docs = results.rows;
 	});
 	sightingFactory.getSightings("inprogress",3).then(function(results){
 		$scope.sightingsInProgress.docs = results.rows;	
+		console.log('sightings in progress');
+		console.log(JSON.stringify(results.rows));
 	});
 	// callback
 	/*
@@ -233,17 +236,7 @@ angular.module('zapp.controllers', [])
 	
 	observerActivityFactory.getObserverActivityRecords($scope.filterBy).then(function(results){		
 		$scope.docs = results.rows;
-		//console.log(results.rows);
-		if ($scope.filterBy == 'inprogress'){
-			$scope.inprogressDocs = results.rows;
-		} else if ($scope.filterBy == 'completed'){
-			$scope.completedDocs = results.rows;
-		} else {
-			$scope.allDocs = results.rows;
-		}
-	});
-	
-	
+	});	
    
 })
 .controller('ObserverActivityController', function (
@@ -316,9 +309,11 @@ angular.module('zapp.controllers', [])
 
    	});
    	$scope.$watch('time_only_end', function(newValue, oldValue) {
-        var myd = new Date(parseInt($scope.observerActivity.end_time));
-        var date_only = $filter('date')(myd,'MM-dd-yyyy');
-        $scope.observerActivity.end_time = new Date(date_only + ' ' + newValue).getTime();
+   		if (oldValue){
+   			var myd = new Date(parseInt($scope.observerActivity.end_time));
+       		var date_only = $filter('date')(myd,'MM-dd-yyyy');
+        	$scope.observerActivity.end_time = new Date(date_only + ' ' + newValue).getTime();
+   		}  
    	});
 	
 	$scope.createObsActivity = function(){

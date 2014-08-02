@@ -130,6 +130,7 @@ angular.module('zapp.services', [])
         var dbmap = function(doc) {
             if(doc.record_type == 'observer_activity') {
 	            	emit(doc.start_time, {
+	            	record_type:doc.record_type,
 	            	activity_name:doc.activity_name,
                     activity_id:doc.activity_id,
                     activity_notes:doc.activity_notes,
@@ -144,6 +145,7 @@ angular.module('zapp.services', [])
 				dbmap = function(doc) {
 		            if(doc.record_type == 'observer_activity' && doc.end_time) {
 			            emit(doc.start_time, {
+			            record_type:doc.record_type,
 		            	activity_name:doc.activity_name,
 	                    activity_id:doc.activity_id,
 	                    activity_notes:doc.activity_notes,
@@ -158,6 +160,7 @@ angular.module('zapp.services', [])
 				dbmap = function(doc) {
 		            if(doc.record_type == 'observer_activity' && typeof doc.end_time == 'undefined') {
 			            emit(doc.start_time, {
+		            	record_type:doc.record_type,
 		            	activity_name:doc.activity_name,
 	                    activity_id:doc.activity_id,
 	                    activity_notes:doc.activity_notes,
