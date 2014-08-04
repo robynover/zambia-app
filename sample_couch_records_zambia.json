@@ -1,0 +1,122 @@
+{
+  "total_rows": 5,
+  "offset": 0,
+  "rows": [
+    {
+      "id": "0B393A6E-6E27-7A73-BA59-A94DB73AE3C6",
+      "key": "0B393A6E-6E27-7A73-BA59-A94DB73AE3C6",
+      "value": {
+        "rev": "2-b1c83ec2df0eb3180c32ff4e3c86b929"
+      },
+      "doc": {
+        "_id": "0B393A6E-6E27-7A73-BA59-A94DB73AE3C6",
+        "_rev": "2-b1c83ec2df0eb3180c32ff4e3c86b929",
+        "record_type": "observer_activity",
+        "activity_name": "Traveling by vehicle",
+        "start_time": 1406621442257,
+        "geolocation": [
+          "$GPRMC,081041.0,A,4041.26284,N,07357.73665,W,000.15,233.2,290714,013.0,W,A*3A\r\n",
+          "$GPGGA,081041.0,4041.26284,N,07357.73665,W,1,06,1.2,33.0,M,-33.5,M,,*53\r\n",
+          "$GPVTG,233.2,T,246.2,M,000.15,N,0000.27,K,A*10\r\n",
+          "$GPGSA,A,3,22,18,74,93,25,31,,,,,,,2.1,1.2,1.8*3E\r\n"
+        ],
+        "elapsed_time": "00 : 00 : 05",
+        "activity_notes": "NFB"
+      }
+    },
+    {
+      "id": "508E2247-2CE0-DCA1-9AE5-37914AF4A998",
+      "key": "508E2247-2CE0-DCA1-9AE5-37914AF4A998",
+      "value": {
+        "rev": "1-29087a38b42bd84c70d3db03788b0b09"
+      },
+      "doc": {
+        "_id": "508E2247-2CE0-DCA1-9AE5-37914AF4A998",
+        "_rev": "1-29087a38b42bd84c70d3db03788b0b09",
+        "record_type": "sighting",
+        "start_time": 1406622011606
+      }
+    },
+    {
+      "id": "51FF8458-3778-B0BC-888B-9893C1C01382",
+      "key": "51FF8458-3778-B0BC-888B-9893C1C01382",
+      "value": {
+        "rev": "3-4e5c4e376d786c1967013b2eb697d0c7"
+      },
+      "doc": {
+        "_id": "51FF8458-3778-B0BC-888B-9893C1C01382",
+        "_rev": "3-4e5c4e376d786c1967013b2eb697d0c7",
+        "record_type": "observer_activity",
+        "activity_name": "Captures: processing",
+        "start_time": 1406621353796,
+        "geolocation": [
+          "$GPRMC,080911.0,A,4041.26262,N,07357.73607,W,000.16,233.2,290714,013.0,W,A*38\r\n",
+          "$GPGGA,080911.0,4041.26262,N,07357.73607,W,1,08,1.2,33.1,M,-33.5,M,,*5D\r\n",
+          "$GPVTG,233.2,T,246.2,M,000.16,N,0000.29,K,A*1D\r\n",
+          "$GPGSA,A,3,22,18,93,66,12,25,31,73,,,,,2.2,1.2,1.8*39\r\n"
+        ],
+        "elapsed_time": "00 : 00 : 23",
+        "activity_notes": "CD Tiburon Needham madmen",
+        "end_time": 1406621377635
+      }
+    },
+    {
+      "id": "5695CB39-CBBD-9B11-80B0-0A8F1D8AD1B0",
+      "key": "5695CB39-CBBD-9B11-80B0-0A8F1D8AD1B0",
+      "value": {
+        "rev": "3-65a93f79adfbb77a9baed9dbdc0c5afb"
+      },
+      "doc": {
+        "_id": "5695CB39-CBBD-9B11-80B0-0A8F1D8AD1B0",
+        "_rev": "3-65a93f79adfbb77a9baed9dbdc0c5afb",
+        "record_type": "sighting",
+        "start_time": 1406621871292,
+        "elapsed_time": "00 : 00 : 58",
+        "end_time": 1406621929732
+      }
+    },
+    {
+      "id": "AA06DFCB-9E67-239E-9EC7-2F69DF86C22F",
+      "key": "AA06DFCB-9E67-239E-9EC7-2F69DF86C22F",
+      "value": {
+        "rev": "3-be52a17009b79bd916e60076c3ad4c8b"
+      },
+      "doc": {
+        "_id": "AA06DFCB-9E67-239E-9EC7-2F69DF86C22F",
+        "_rev": "3-be52a17009b79bd916e60076c3ad4c8b",
+        "record_type": "sighting",
+        "start_time": 1407010020000,
+        "elapsed_time": "00 : 01 : 27",
+        "phenotypes": [
+          {
+            "frequency": "77",
+            "name": "Mohawk > marked",
+            "notes": "Fishery should such",
+            "$$hashKey": "03Z"
+          },
+          {
+            "name": "Circumorbital skin > pink spectacles",
+            "frequency": "22",
+            "$$hashKey": "041"
+          }
+        ],
+        "sighting_notes": "Good noted cargo JDM watch night"
+      }
+    },
+    {
+      "id": "CE2499D0-1614-392E-9145-8638A8903FA6",
+      "key": "CE2499D0-1614-392E-9145-8638A8903FA6",
+      "value": {
+        "rev": "2-a20ed54997fb21936707e23bb46ac9d1"
+      },
+      "doc": {
+        "_id": "CE2499D0-1614-392E-9145-8638A8903FA6",
+        "_rev": "2-a20ed54997fb21936707e23bb46ac9d1",
+        "record_type": "sighting",
+        "start_time": 1406621602575,
+        "elapsed_time": "00 : 00 : 08",
+        "sighting_notes": "Db Fri"
+      }
+    }
+  ]
+}
