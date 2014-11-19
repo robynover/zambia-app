@@ -489,9 +489,7 @@ angular.module('zapp.services', [])
 		},
 
 		//subscribe to Bluetooth
-		//bluetoothFactory.registerSubscriber(function(data,subId){} //results from BT will be in data -- remember, it's just one sentence at a time
 		subBt: function(callback){
-			console.log('subBt from factory ----- SCOPE CHECK --- ' + this.debug);
 			var firstSentenceType = false; // might think of this as the "control sentence"
 			var nmeaPacket = [];
 			var nmeaCompletePacket = [];
@@ -499,13 +497,10 @@ angular.module('zapp.services', [])
 
 			// function to send to register:
 			var processNmeaStream = function(nmeaSentenceData,subscriberId){ // these are the values that are RECEIVED, via callback
-				console.log('process nmea stream: ' + nmeaSentenceData );
-				//console.log(JSON.stringify(nmeaPacket));
-				//console.log('subscriber id :  ' + subscriberId);
+				//console.log('process nmea stream: ' + nmeaSentenceData );
 				var sentenceType = nmeaSentenceData.split(',')[0]; // eg, $GPXYZ
 				controlVar++;
 				console.log("control var: " + controlVar);
-				//console.log("SENTENCES: current: " + sentenceType + "    first: "+firstSentenceType);
 		
 				// use the first sentence we see as the base, to know when it's made a round, and to make a new packet
 				if (!firstSentenceType){
@@ -805,8 +800,6 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 			);
 		},
 		
-		/// todo: REWRITE!!!! not reading root scope any more!!!!
-		//bluetoothSerial.isConnected(disconnect, connect);
 		connectionManager: function(){
 			// use named object to better manage scope
 			var mc = {
@@ -815,7 +808,6 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 				}, 
 				connect: function(deviceAddress){
 					console.log('connect called');
-					//$rootScope.btDeviceName = deviceAddress;
 					// attempt to connect
 					bluetoothSerial.connect(
 						deviceAddress,  // device to connect to
@@ -838,16 +830,13 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 					console.log('connectSuccess func called');
 					$rootScope.$broadcast('bt-connected');
 					$rootScope.subscriberRegistry = {};
-					//debug: double check
 					bluetoothSerial.isConnected(
 							function(){console.log('connectCheck: YES');},
 							function(){console.log('connectCheck: NO');}
 						);
 					
 					//bluetooth subscribe
-					//bluetoothSerial.subscribe('\n', mc.DataHandler,function(){console.log('subscribe failed');});
 					bluetoothSerial.subscribe('\n', function(data){
-						//console.log('got data');
 						mc.dataHandler(data);
 					},function(){console.log('subscribe failed');});
 				},
@@ -856,8 +845,6 @@ IMPORTANT! remember to enable bluetooth plugin for phonegap for this to work
 					console.log('fail');
 				},
 				dataHandler: function(data){
-					//console.log('********* DATA: ' + data);
-					//console.log('d');
 					if ( Object.keys($rootScope.subscriberRegistry).length > 0 ){
 						//console.log(' ========= SUBSCRIBERS: ============ ');
 						for (var id in $rootScope.subscriberRegistry){
